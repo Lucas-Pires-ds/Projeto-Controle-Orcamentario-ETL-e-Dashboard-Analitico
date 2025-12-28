@@ -17,5 +17,7 @@ Fiz um script python para gerar uma base de dados o mais próximo da realidade p
 **- Arquiterura:**
 Arquitetura: Optei pelo padrão de camadas (Staging e Trusted) para garantir que o processo de ETL seja rastreável e que erros de importação não interrompam o fluxo de carga.
 
-
+**- Resolução de problemas:**
+- Encontrei erros de 'Objeto não encontrado' durante a ingestão. Solucionei implementando scripts de criação condicional (IF NOT EXISTS) para garantir que a estrutura de Staging esteja pronta antes do BULK INSERT.
+- Desafio: Autocompletar (IntelliSense) não reconhecendo novas tabelas de Staging no VS Code. Solução: Utilizado o comando Refresh IntelliSense Cache e adotada a boa prática de referenciar tabelas utilizando o esquema (dbo.tabela) para garantir maior clareza e evitar problemas de permissão.
 
