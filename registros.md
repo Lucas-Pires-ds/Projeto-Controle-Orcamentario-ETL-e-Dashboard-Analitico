@@ -16,6 +16,7 @@ Fiz um script python para gerar uma base de dados o mais próximo da realidade p
 
 **- Arquiterura:**
 Optei pelo padrão de camadas (Staging e Trusted) para garantir que o processo de ETL seja rastreável e que erros de importação não interrompam o fluxo de carga.
+Utilizei views para tratar o dado sujo e testar se o tratamento estava funcionando antes de dar insert nas tabelas trusted, garantindo assim que as tabelas trusted estejam 100% limpas
 
 **- Resolução de problemas:**
 - Encontrei erros de 'Objeto não encontrado' durante a ingestão. Solucionei implementando scripts de criação condicional (IF NOT EXISTS) para garantir que a estrutura de Staging esteja pronta antes do BULK INSERT.
