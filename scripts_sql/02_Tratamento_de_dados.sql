@@ -1,4 +1,3 @@
-SELECT * FROM vw_categoria
 
 -- criando as tabelas 
 
@@ -32,7 +31,7 @@ CREATE OR ALTER VIEW vw_campanhas AS
        SELECT
               CAST(id_camp AS INT) AS 'ID_camp',
               nome_camp,
-              CAST(mes_ref AS INT) 'AS mes_ref' 
+              CAST(mes_ref AS INT) AS 'mes_ref' 
        FROM stg_dim_campanha
 
 GO
@@ -48,8 +47,8 @@ GO
 -- dim_categoria
 CREATE OR ALTER VIEW vw_categoria AS 
        SELECT
-              CAST(REPLACE(id_cat, '.0', '') AS INT) AS 'id_cat',
-              CAST(REPLACE(id_cc, '.0', '') AS INT)  AS 'id_cc',
+              CAST(TRIM(REPLACE(id_cat, '.0', '')) AS INT) AS 'id_cat',
+              CAST(TRIM(REPLACE(id_cc, '.0', '')) AS INT)  AS 'id_cc',
               UPPER(LEFT(TRIM(nome_cat),1))
             + LOWER(RIGHT(TRIM(nome_cat),LEN(TRIM(nome_cat))-1)) AS 'nome_cat'
        FROM stg_dim_categoria
@@ -69,12 +68,11 @@ SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_categoria'
 INSERT INTO dim_camp_marketing
 SELECT * FROM vw_campanhas
 
-INSERT INTO dim_categoria
-SELECT * FROM vw_categoria
-
 INSERT INTO dim_centro_custo
 SELECT * FROM vw_centro_custo
 
+INSERT INTO dim_categoria
+SELECT * FROM vw_categoria
 
 
 
