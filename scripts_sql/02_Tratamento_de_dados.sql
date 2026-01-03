@@ -24,6 +24,13 @@ CREATE TABLE dim_categoria(
        CONSTRAINT dim_categoria_id_cc_fk FOREIGN KEY (id_cc) REFERENCES dim_centro_custo(id_cc)
 )      
 GO
+
+CREATE TABLE dim_fornecedores(
+       id_forn INT,
+       nome_forn VARCHAR(200),
+       CONSTRAINT dim_fornecedores_id_forn_pk PRIMARY KEY(id_forn)
+)
+GO
 -- usando view para tratar os dados enquanto observo se os tratamentos dão certo antes de insertar na tabela trusted
 
 -- dim_camp_marketing
@@ -53,7 +60,15 @@ CREATE OR ALTER VIEW vw_categoria AS
             + LOWER(RIGHT(TRIM(nome_cat),LEN(TRIM(nome_cat))-1)) AS 'nome_cat'
        FROM stg_dim_categoria
        WHERE id_cat IS NOT NULL
+GO
+-- dim_fornecedores
 
+CREATE OR ALTER VIEW vw_fornecedores AS
+       SELECT
+              CAST(id_forn AS INT) AS 'id_forn',
+              nome_forn
+       FROM
+              stg_dim_fornecedores
 GO
 -- verificando o tratamento deu certo
 
@@ -62,6 +77,8 @@ SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_campanhas'
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_centro_custo'
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_categoria'
+
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_fornecedores'
 
 -- inserindo dados na tabela trusted dim_camp_marketing
 
@@ -73,6 +90,21 @@ SELECT * FROM vw_centro_custo
 
 INSERT INTO dim_categoria
 SELECT * FROM vw_categoria
+
+INSERT INTO dim_fornecedores
+SELECT * FROM vw_fornecedores
+
+-- verificando se a tabela de fornecedores precisa de tratamento TRIM
+SELECT
+       id_forn,
+       LEN(id_forn) - LEN(TRIM(id_forn)) AS 'Dif ID',
+       CASE WHEN LEN(id_forn) - LEN(TRIM(id_forn)) > 0 THEN 'Sim' ELSE 'Não' END AS 'Necessário TRIM?',
+       nome_forn,
+       LEN(nome_forn) - LEN(TRIM(nome_forn)) AS 'Dif nome_Norn',
+       CASE WHEN LEN(nome_forn) - LEN(TRIM(nome_forn)) > 0 THEN 'Sim' ELSE 'Não' END AS 'Necessário TRIM?'
+FROM stg_dim_fornecedores
+
+-- Não foi necessário nenhum tratamento na tabela de fornecedores
 
 
 
