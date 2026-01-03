@@ -41,9 +41,9 @@ GO
 
 -- DIM_CAMPANHA ---------------------------------------------------
 
-SELECT * FROM stg_dim_campanha
+SELECT * FROM stg_dim_campanha -- OVERVIEW
 
--- VERIFICAÇÃO DE ESPAÇO ANTES OU DEPOIS DO ID DA CAMPANHA
+-- VERIFICAÇÃO DE ESPAÇO EXTRAS
 SELECT
        (SELECT
               COUNT(*) 
@@ -51,21 +51,21 @@ SELECT
               stg_dim_campanha
        WHERE 
               LEN(id_camp) > LEN(TRIM(id_camp))
-       ) AS 'Espaços_ID',
+       ) AS 'espaços_ID',
        (SELECT
               COUNT(*)
        FROM 
               stg_dim_campanha
        WHERE
               LEN(nome_camp) > LEN(TRIM(nome_camp))
-       ) AS 'Espaços_Nome',
+       ) AS 'espaços_Nome',
        (SELECT
               COUNT(*)
        FROM 
               stg_dim_campanha
        WHERE
               LEN(mes_ref) > LEN(TRIM(mes_ref))
-       ) AS 'Espaços_Mes_ref'
+       ) AS 'espaços_Mes_ref'
 
 -- VERIFICAÇÃO DE NULOS OU VAZIOS
 
@@ -96,14 +96,14 @@ SELECT
 
 SELECT
        id_camp,
-       COUNT(id_camp) AS 'Contagem'
+       COUNT(id_camp) AS 'contagem'
 FROM
        stg_dim_campanha
 GROUP BY
        id_camp
 HAVING COUNT(id_camp) > 1
 
--- VERIFICAÇÃO DE MESES VALIDOS
+-- VERIFICAÇÃO DE MESES INVALIDOS
 
 SELECT
        COUNT(*) AS 'meses_invalidos'
@@ -111,9 +111,40 @@ FROM
        stg_dim_campanha
 WHERE mes_ref < 1 OR mes_ref > 12
 
+-- VERIFICACAO DE TIPOS DE DADOS
 
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'stg_dim_campanha'
 
+/* RESULTADO DA VERIFICAÇÃO:
+- ESPAÇOS EXTRAS: 0 ENCONTRADOS, NENHUM TRATAMENTO NECESSÁRIO
+- NULOS OU VAZIOS: 0 ENCONTRADOS, NENHUM TRATAMENTO NECESSÁRIO
+- DUPLICIDADE DE CHAVE PRIMARIA: 0 ENCONTRADAS, NENHUM TRATAMENTO NECESSÁRIO
+- MESES INVALIDOS: 0 ENCONTRADOS, NENHUM TRATAMENTO NECESSÁRIO
+- TIPOS DE DADOS: ID E MES_REF ESTÃO COMO VARCHAR AO INVÉS DE INT. TRATAMENTO A SER REALIZADO: CONVERTER EM INT
+*/
 -- DIM_CENTRO_CUSTO -----------------------------------------------
+
+SELECT * FROM stg_dim_centro_custo -- OVERVIEW
+
+-- VERIFICAÇÃO DE ESPAÇOS EXTRAS
+
+SELECT
+       (SELECT 
+              COUNT(*)
+       FROM
+              stg_dim_centro_custo
+       WHERE
+              LEN(id_cc) > LEN(TRIM(id_cc))
+       ) AS 'espaços_ID',
+       (SELECT
+              COUNT(*)
+       FROM
+              stg_dim_centro_custo
+       WHERE
+              LEN(nome_cc) > LEN(TRIM(nome_cc))
+       ) AS 'espaços_nome'
+
+-- FOI IDENTIFICADO QUE 2 NOMES ESTAVAM COM ESPAÇOS EXTRAS
 
 
 
