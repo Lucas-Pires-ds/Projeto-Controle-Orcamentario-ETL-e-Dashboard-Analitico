@@ -1,41 +1,48 @@
-# Projeto Controle Orçamentário Corporativo: ETL e Dashboard Analítico
+# Projeto: Controle Orçamentário - De ponta a ponta (ETL, Data Quality e Analytics)
 
-> **Status do Projeto:** 🚧 Em Desenvolvimento (Fase de ETL e Modelagem SQL)
-
-Este projeto visa a criação de uma solução completa de Business Intelligence para análise financeira, abrangendo desde a geração de dados sintéticos até a visualização em dashboards de alto impacto.
-
-## 🏗️ Arquitetura de Dados
-
-O projeto segue o padrão de medalhão simplificado, utilizando camadas para garantir a integridade e rastreabilidade:
-
-1.  **Staging (Raw):** Dados brutos importados via `BULK INSERT` em formato `VARCHAR(MAX)`.
-2.  **Transformation (Views):** Camada lógica onde ocorre o *Data Cleansing* (limpeza), tipagem e aplicação de regras de negócio.
-3.  **Trusted (Dimension/Fact):** Tabelas finais otimizadas em modelo **Star Schema** para consumo do Power BI.
-
-## 🛠️ Tecnologias Utilizadas
-
-* **Python:** Geração de 5.000+ linhas de dados sintéticos com regras de sazonalidade (13º salário, campanhas de marketing) e erros propositais para teste de robustez.
-* **SQL Server:** Armazenamento, modelagem dimensional e processamento ETL.
-* **VS Code:** Ambiente de desenvolvimento principal.
-* **IA Consultiva:** Utilização de modelos de linguagem para auxílio em *Pair Programming* e otimização de queries.
-
-## 📈 O que já foi implementado:
-
-- [x] Definição de escopo e regras de negócio.
-- [x] Script Python para geração de bases financeiras realistas.
-- [x] Configuração do banco de dados e ingestão na camada Staging.
-- [x] Desenvolvimento de Views de transformação com tratamento de:
-    - Duplicidades críticas.
-    - Padronização de texto (InitCap).
-    - Tratamento de nulos e conversão de tipos (Casting).
-- [x] Criação e carga das tabelas de Dimensão (`d_campanha`, `d_centro_custo`, `d_categoria`).
-
-## 🚀 Próximos Passos
-
-- [ ] Modelagem e carga da Tabela Fato (`f_lancamentos` e `f_orcamento`).
-- [ ] Implementação de chaves substitutas (Surrogate Keys).
-- [ ] Integração e modelagem de dados no Power BI.
-- [ ] Criação de Dashboard interativo.
+## 📌 Visão Geral
+Este é um projeto de **Análise de Dados** focado em controle orçamentário e lançamentos financeiros. O diferencial deste projeto é a implementação de um pipeline de **ETL com alicerces de Engenharia de Dados**, garantindo que as análises finais no Power BI sejam baseadas em dados íntegros, auditáveis e livres de inconsistências.
 
 ---
-*Este é um projeto de portfólio para demonstrar habilidades em Análise de Dados.*
+
+## 🏗️ Arquitetura e Estrutura do Pipeline
+O projeto foi desenhado utilizando o conceito de camadas, garantindo a separação entre o dado bruto e o dado pronto para análise:
+
+1.  **Staging Layer (`stg_`)**: Camada de aterrissagem dos dados. Aqui, os dados são importados "como estão", permitindo a identificação de ruídos, duplicidades e erros de preenchimento gerados propositalmente por um script Python de simulação.
+2.  **Diagnóstico de Qualidade (Data Quality)**: Uma etapa intermediária (alicerce de engenharia) onde o dado é auditado via SQL antes de qualquer transformação.
+3.  **Trusted Layer (Dimensões e Fatos)**: Camada final de dados limpos, tipados e padronizados, servindo como a única "fonte da verdade" para o Dashboard.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+* **SQL Server**: Motor principal para processamento, limpeza e modelagem.
+* **Python**: Geração de dados sintéticos com regras de sazonalidade e erros controlados.
+* **Power BI**: (Em construção) Camada de visualização e cálculo de KPIs.
+
+---
+
+## 📈 Log de Desenvolvimento (Metodologia)
+
+### [28/12/2025] Ingestão e Estrutura Inicial
+* Configuração do ambiente e criação da estrutura de banco de dados.
+* Carga de 5000+ registros via Bulk Insert na camada de Staging.
+* **Decisão técnica:** Uso de **Views** para isolar a lógica de tratamento, permitindo testar a limpeza antes da carga física.
+
+### [03/01/2026] Refatoração: Implementando a Camada de Data Quality
+Neste estágio, o projeto foi elevado para um nível de **Analytics Engineering**. Em vez de apenas limpar os dados, criei um pipeline de validação:
+* **Detecção de "Sujeira" de String:** Implementação da lógica `LEN(col) > LEN(TRIM(col))` para monitorar automaticamente espaços extras.
+* **Tratamento de Dados Vazios:** Validação composta `IS NULL OR LEN(col) = 0` para capturar ausência de dados que o banco não reconhece como nulo.
+* **Auditoria de Unicidade:** Uso de `GROUP BY` e `HAVING` para garantir a integridade das Chaves Primárias (PKs) antes da carga na Trusted.
+* **Padronização Semântica:** Uso de funções de string para garantir o formato *Initcap* (Primeira letra maiúscula) em todas as dimensões.
+
+---
+
+## 🚀 Próximos Passos
+- [ ] Aplicar a régua de Data Quality nas Tabelas Fato (`fato_lancamentos` e `fato_orcamento`).
+- [ ] Implementar validação de integridade referencial (Chaves Estrangeiras).
+- [ ] Desenvolver o Dashboard no Power BI com foco em indicadores de desvio orçamentário e tendência.
+
+---
+
+**Autor:** Lucas Pires  
+**Perfil:** Analista de Dados com foco em processos de ETL e Qualidade de Dados.
