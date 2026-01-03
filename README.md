@@ -6,16 +6,16 @@ Este é um projeto de **Análise de Dados** focado em controle orçamentário e 
 ---
 
 ## 🏗️ Arquitetura e Estrutura do Pipeline
-O projeto foi desenhado utilizando o conceito de camadas, garantindo a separação entre o dado bruto e o dado pronto para análise:
+O projeto utiliza o conceito de camadas para garantir a separação entre o dado bruto e o dado pronto para análise:
 
-1.  **Staging Layer (`stg_`)**: Camada de aterrissagem dos dados. Aqui, os dados são importados "como estão", permitindo a identificação de ruídos, duplicidades e erros de preenchimento gerados propositalmente por um script Python de simulação.
-2.  **Diagnóstico de Qualidade (Data Quality)**: Uma etapa intermediária (alicerce de engenharia) onde o dado é auditado via SQL antes de qualquer transformação.
-3.  **Trusted Layer (Dimensões e Fatos)**: Camada final de dados limpos, tipados e padronizados, servindo como a única "fonte da verdade" para o Dashboard.
+1.  **Staging Layer (`stg_`)**: Camada de aterrissagem dos dados "como estão", permitindo a identificação de ruídos e erros gerados propositalmente para simulação de cenários reais.
+2.  **Diagnóstico de Qualidade (Data Quality)**: Etapa de auditoria técnica via SQL onde o dado é validado antes de qualquer transformação física.
+3.  **Trusted Layer (Dimensões e Fatos)**: Camada final de dados limpos, tipados e com integridade referencial, servindo como a única "fonte da verdade".
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
-* **SQL Server**: Motor principal para processamento, limpeza e modelagem.
+* **SQL Server**: Motor principal para processamento, limpeza, auditoria e modelagem.
 * **Python**: Geração de dados sintéticos com regras de sazonalidade e erros controlados.
 * **Power BI**: (Em construção) Camada de visualização e cálculo de KPIs.
 
@@ -24,25 +24,27 @@ O projeto foi desenhado utilizando o conceito de camadas, garantindo a separaç�
 ## 📈 Log de Desenvolvimento (Metodologia)
 
 ### [28/12/2025] Ingestão e Estrutura Inicial
-* Configuração do ambiente e criação da estrutura de banco de dados.
-* Carga de 5000+ registros via Bulk Insert na camada de Staging.
-* **Decisão técnica:** Uso de **Views** para isolar a lógica de tratamento, permitindo testar a limpeza antes da carga física.
+* Configuração do ambiente e criação da estrutura de banco de dados SQL Server.
+* Carga inicial de 5000+ registros via Bulk Insert na camada de Staging.
+* **Decisão técnica:** Uso de **Views** para isolar a lógica de tratamento, facilitando a manutenção e testes.
 
-### [03/01/2026] Refatoração: Implementando a Camada de Data Quality
-Neste estágio, o projeto foi elevado para um nível de **Analytics Engineering**. Em vez de apenas limpar os dados, criei um pipeline de validação:
-* **Detecção de "Sujeira" de String:** Implementação da lógica `LEN(col) > LEN(TRIM(col))` para monitorar automaticamente espaços extras.
-* **Tratamento de Dados Vazios:** Validação composta `IS NULL OR LEN(col) = 0` para capturar ausência de dados que o banco não reconhece como nulo.
-* **Auditoria de Unicidade:** Uso de `GROUP BY` e `HAVING` para garantir a integridade das Chaves Primárias (PKs) antes da carga na Trusted.
-* **Padronização Semântica:** Uso de funções de string para garantir o formato *Initcap* (Primeira letra maiúscula) em todas as dimensões.
+### [03/01/2026] Analytics Engineering: Camada de Auditoria e Carga das Dimensões
+Nesta fase, concluímos o tratamento completo das tabelas de dimensões, elevando o rigor técnico com diagnósticos documentados no código:
+
+* **Auditoria de Data Quality:** Implementação de scripts de diagnóstico para identificar espaços extras, valores nulos/vazios e duplicidade de PKs.
+* **Investigação de Causa Raiz:** Identificação de registros duplicados ocultos por campos nulos na `stg_dim_categoria` (ex: caso Aluguel/Condomínio), com a respectiva estratégia de descarte na carga.
+* **Tratamento de Tipagem Complexa:** Solução para chaves primárias importadas erroneamente em formato decimal (`float`) via conversão aninhada (`CAST AS FLOAT -> INT`).
+* **Padronização Semântica Seletiva:** Desenvolvimento de lógica autoral para formato *Initcap* (Primeira letra maiúscula), com filtros para respeitar siglas e exceções de negócio (ex: RH, TI, Limpeza/Conservação).
+* **Validação de Metadados:** Uso de `INFORMATION_SCHEMA` para assegurar a tipagem correta antes da carga física via `INSERT INTO`.
+* **Integridade Referencial:** Verificação de Chaves Estrangeiras (FKs) entre Categorias e Centros de Custo para evitar dados "órfãos".
 
 ---
 
 ## 🚀 Próximos Passos
 - [ ] Aplicar a régua de Data Quality nas Tabelas Fato (`fato_lancamentos` e `fato_orcamento`).
-- [ ] Implementar validação de integridade referencial (Chaves Estrangeiras).
-- [ ] Desenvolver o Dashboard no Power BI com foco em indicadores de desvio orçamentário e tendência.
+- [ ] Implementar validação de integridade referencial profunda (FKs das Fatos).
+- [ ] Desenvolver o Dashboard no Power BI com foco em indicadores de desvio orçamentário (Orçado vs. Realizado).
 
 ---
 
-**Autor:** Lucas Pires  
-**Perfil:** Analista de Dados com foco em processos de ETL e Qualidade de Dados.
+Este é um projeto de portfólio para demonstrar habilidades em ETL, BI e Análise de Dados.
