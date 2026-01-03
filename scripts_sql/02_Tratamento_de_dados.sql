@@ -39,16 +39,113 @@ GO
 ------------------------------------------- VERIFICAÇÃO DE TRATAMENTOS NECESSÁRIOS --------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
--- dim_fornecedores
-SELECT
-       id_forn,
-       LEN(id_forn) - LEN(TRIM(id_forn)) AS 'Dif ID',
-       CASE WHEN LEN(id_forn) - LEN(TRIM(id_forn)) > 0 THEN 'Sim' ELSE 'Não' END AS 'Necessário TRIM?',
-       nome_forn,
-       LEN(nome_forn) - LEN(TRIM(nome_forn)) AS 'Dif nome_Norn',
-       CASE WHEN LEN(nome_forn) - LEN(TRIM(nome_forn)) > 0 THEN 'Sim' ELSE 'Não' END AS 'Necessário TRIM?'
-FROM stg_dim_fornecedores
+-- DIM_CAMPANHA ---------------------------------------------------
 
+SELECT * FROM stg_dim_campanha
+
+-- VERIFICAÇÃO DE ESPAÇO ANTES OU DEPOIS DO ID DA CAMPANHA
+SELECT
+       (SELECT
+              COUNT(*) 
+       FROM
+              stg_dim_campanha
+       WHERE 
+              LEN(id_camp) > LEN(TRIM(id_camp))
+       ) AS 'Espaços_ID',
+       (SELECT
+              COUNT(*)
+       FROM 
+              stg_dim_campanha
+       WHERE
+              LEN(nome_camp) > LEN(TRIM(nome_camp))
+       ) AS 'Espaços_Nome',
+       (SELECT
+              COUNT(*)
+       FROM 
+              stg_dim_campanha
+       WHERE
+              LEN(mes_ref) > LEN(TRIM(mes_ref))
+       ) AS 'Espaços_Mes_ref'
+
+-- VERIFICAÇÃO DE NULOS OU VAZIOS
+
+SELECT
+       (SELECT
+              COUNT(*) 
+       FROM
+              stg_dim_campanha
+       WHERE 
+              id_camp IS NULL OR LEN(id_camp) = 0
+       ) AS 'ID_nulo',
+       (SELECT
+              COUNT(*) 
+       FROM
+              stg_dim_campanha
+       WHERE 
+              nome_camp IS NULL OR LEN(nome_camp) = 0
+       ) AS 'nome_nulo',
+       (SELECT
+              COUNT(*) 
+       FROM
+              stg_dim_campanha
+       WHERE 
+              mes_ref IS NULL OR LEN(mes_ref) = 0
+       ) AS 'mes_ref_nulo'
+
+-- VERIFICAÇÃO DE DUPLICIDADE DE CHAVE PRIMARIA
+
+SELECT
+       id_camp,
+       COUNT(id_camp) AS 'Contagem'
+FROM
+       stg_dim_campanha
+GROUP BY
+       id_camp
+HAVING COUNT(id_camp) > 1
+
+-- VERIFICAÇÃO DE MESES VALIDOS
+
+SELECT
+       COUNT(*) AS 'meses_invalidos'
+FROM
+       stg_dim_campanha
+WHERE mes_ref < 1 OR mes_ref > 12
+
+
+
+-- DIM_CENTRO_CUSTO -----------------------------------------------
+
+
+
+-- DIM_CATEGORIA --------------------------------------------------
+
+
+
+-- DIM_FORNECEDORES-------------------------------------------------
+
+SELECT * FROM stg_dim_fornecedores
+
+-- VERIFICAÇÃO DE ESPAÇO ANTES OU DEPOIS DO ID DO FORNECEDOR
+
+SELECT
+       COUNT(*) AS 'Espaços vazios'
+FROM stg_dim_fornecedores
+WHERE LEN(id_forn) > LEN(TRIM(id_forn))
+
+-- VERIFICAÇÃO DE ESPAÇO ANTES OU DEPOIS DO NOME DO FORNECEDOR
+
+SELECT
+       COUNT(*) AS 'Espaços vazios'
+FROM stg_dim_fornecedores
+WHERE LEN(nome_forn) > LEN(TRIM(nome_forn))
+
+-- VERIFICAÇÃO DE NULOS
+
+SELECT
+       COUNT(*) AS 'Espaços vazios'
+FROM stg_dim_fornecedores
+WHERE id_forn IS NULL OR nome_forn IS NULL
+-- 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------TRANSFORMAÇÃO, LIMPEZA E CRIAÇÃO DE VIEWS -----------------------------------------------------------
