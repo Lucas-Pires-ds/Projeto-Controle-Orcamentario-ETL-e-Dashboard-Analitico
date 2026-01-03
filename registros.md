@@ -48,7 +48,49 @@ Utilizei views para tratar o dado sujo e testar se o tratamento estava funcionan
 - Validar se o projeto atingiu todas as expectativas
 - Concluir projeto
 
-## [03/01/2026] Criação da tabela dimensão "Fornecedores" e das tabelas fato "Lançamentos" e "Orçamentos"
-### O que foi feito:
-- Tratamento e criação da tabela dimensão "Fornecedores"
+Aqui está o texto formatado seguindo rigorosamente a sintaxe Markdown para que os títulos, subtítulos e negritos fiquem com a hierarquia correta no seu registro.
 
+## [03/01/2026] Refatoração e Implementação de Camada de Data Quality
+### O que foi feito:
+Refatoração da estrutura do script SQL para um modelo de pipeline mais organizado e profissional.
+
+Implementação de uma camada de Diagnóstico de Qualidade (Data Quality) antes da fase de transformação.
+
+Criação e carga da tabela trusted dim_fornecedores.
+
+Validação completa de integridade da tabela dim_camp_marketing utilizando novos métodos de auditoria.
+
+### Decisões técnicas:
+- Metodologia de Data Quality: Decidi ser mais rigoroso na verificação dos dados da Staging antes de criar as Views. Para isso, criei scripts de diagnóstico para validar:
+
+Espaços Extras: Usei a lógica LEN(col) > LEN(TRIM(col)) para identificar de forma automática registros com sujeira de espaçamento, em vez de apenas olhar o TOP 100.
+
+Campos Nulos ou Vazios: Implementei a checagem IS NULL OR LEN(col) = 0 para garantir que campos que parecem vazios (mas não são nulos) também sejam capturados.
+
+Unicidade (PK): Utilizei GROUP BY com HAVING COUNT > 1 para garantir que não existam IDs duplicados que possam quebrar as constraints de Primary Key da camada Trusted.
+
+Validação de Domínio: No campo mes_ref, criei um filtro para garantir que os valores estejam apenas entre 1 e 12, evitando erros de lógica de negócio.
+
+- Refatoração da Arquitetura do Script: Para tornar o projeto mais escalável e fácil de manter, organizei o script único em blocos lógicos claros:
+
+DDL: Criação das tabelas físicas (Trusted).
+
+Diagnóstico: Scripts de validação da saúde do dado na Staging.
+
+Transformação: Views com a "inteligência" de limpeza e padronização.
+
+Carga: Processo de INSERT para a camada definitiva.
+
+Auditoria: Relatório final usando UNION ALL para conferir o total de registros carregados em cada tabela.
+
+- Evolução do Perfil: O projeto, que era focado em análise, passou a ter uma base forte de Analytics Engineering, garantindo que o dado no Dashboard seja 100% confiável e auditável.
+
+### Resolução de problemas:
+Desafio da Versatilidade vs. Padronização: Avaliei o uso de técnicas diferentes para mostrar conhecimento (Subqueries vs. Sum Case), mas decidi padronizar as validações iniciais em Subqueries. Essa escolha foi feita para manter a autoria total da lógica e garantir que eu consiga defender cada linha de código em uma revisão técnica.
+
+Saneamento de Strings em Campos Numéricos: Identifiquei que campos numéricos na Staging às vezes impediam o uso da função LEN. Solucionei aplicando CAST(col AS VARCHAR) dentro da validação para permitir a contagem de caracteres sem erro de tipo.
+
+### Próximos passos:
+Aplicar essa mesma régua de qualidade (Data Quality) para as demais dimensões.
+
+Iniciar o desafio das tabelas fato (fato_lancamentos e fato_orcamento), onde a validação incluirá integridade referencial (chaves estrangeiras).
