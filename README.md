@@ -7,6 +7,9 @@ O foco principal não é apenas gerar dashboards, mas **demonstrar pensamento de
 
 O projeto foi desenvolvido com **SQL Server**, **Python** e **Power BI**, adotando boas práticas de arquitetura e ETL utilizadas no mercado.
 
+> **Status do projeto:** em desenvolvimento contínuo, com evolução progressiva das camadas Silver e Gold e das análises no Power BI.
+
+
 ## 🎯 Problema de Negócio
 
 Empresas que trabalham com orçamento frequentemente enfrentam desafios como:
