@@ -23,15 +23,3 @@ UNION ALL
 SELECT 'dim_categoria' AS Tabela, COUNT(*) AS Total_Registros FROM dim_categoria
 UNION ALL
 SELECT 'dim_fornecedores' AS Tabela, COUNT(*) AS Total_Registros FROM dim_fornecedores
-
-SELECT * FROM dim_camp_marketing
-SELECT * FROM vw_campanhas
-
-SELECT * FROM dim_centro_custo
-SELECT * FROM vw_centro_custo
-
-SELECT * FROM dim_categoria
-SELECT * FROM vw_categoria
-
-SELECT * FROM dim_fornecedores
-SELECT * FROM vw_fornecedores
