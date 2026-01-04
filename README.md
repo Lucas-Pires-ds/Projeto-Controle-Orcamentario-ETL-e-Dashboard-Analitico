@@ -24,26 +24,27 @@ Desenhei o projeto utilizando o conceito de camadas para separar as responsabili
 
 ## 📈 Log de Desenvolvimento (Metodologia)
 
-### [28/12/2025] Ingestão e Estrutura Inicial
-* Configuração do ambiente SQL e criação das tabelas da camada **Bronze**.
-* Carga de 5000+ registros via Bulk Insert.
-* **Decisão técnica:** Uso de **Views** para isolar a lógica de transformação, permitindo testar a limpeza antes de persistir os dados na camada Silver.
+### [28/12/2025] Ingestão e Arquitetura de Camadas
+* **Estruturação Bronze:** Carga de 5000+ registros via Bulk Insert. Configurei a camada Bronze 100% em `VARCHAR` para garantir a ingestão de dados sujos sem quebras de processo, movendo a complexidade de tratamento para dentro do SQL.
+* **Simulação Realística:** Os dados foram gerados via Python com erros propositais (espaços, nulos e chaves órfãs) para validar a resiliência do pipeline.
 
-### [03/01/2026] Analytics Engineering: Auditoria e Carga das Dimensões
-Foco total na qualidade das dimensões, movendo a análise visual para validações automáticas via código:
+### [03/01/2026] Analytics Engineering: Onde o valor foi gerado
+Nesta fase, saí da análise visual e implementei um framework de **Data Quality** via código. Os principais desafios e soluções foram:
 
-* **Data Quality Automático:** Implementação de scripts para detectar espaços extras, nulos e campos vazios de forma massiva.
-* **Resolução de Tipagem:** Tratamento de IDs decimais (`101.0`) importados como string, resolvidos com conversão aninhada (`FLOAT -> INT`) na View de transformação.
-* **Padronização Inteligente (Initcap):** Lógica de padronização que respeita siglas de negócio (RH, TI) e termos compostos, tratando apenas o que estava em caixa alta indevida.
-* **Investigação de Causa Raiz:** Identificação de duplicidades geradas por registros nulos e saneamento direto no pipeline.
-* **Integridade Referencial:** Validação de chaves estrangeiras entre as dimensões para evitar dados "órfãos" no modelo final.
+* **Framework de Auditoria:** Implementei diagnósticos automáticos comparando comprimentos de strings (`LEN` vs `TRIM`) e verificando nulos/vazios massivamente. Isso permitiu quantificar a "sujeira" antes da limpeza.
+* **Resolução de Tipagem Complexa:** Tratei o erro clássico de IDs importados como decimais (ex: `101.0`) através de **conversão aninhada** (`CAST as FLOAT -> INT`), garantindo a integridade das Chaves Primárias na camada Silver.
+* **Initcap com Exceções de Negócio:** Desenvolvi uma lógica de padronização de nomes via código (`LEFT`, `RIGHT`, `LEN-1`). Diferente de um tratamento comum, esta lógica preserva siglas críticas (RH, TI) e termos compostos, mantendo a semântica do negócio.
+* **Hierarquia e Integridade:** Planejei a carga seguindo a dependência de Chaves Estrangeiras (FKs). Validei via `NOT IN` se todas as Categorias possuíam Centros de Custo correspondentes antes de persistir os dados, evitando erros de relacionamento no modelo final.
+
+
 
 ---
 
-## 🚀 Próximos Passos
-- [ ] Aplicar o rigor de Data Quality nas tabelas Fato (Silver Layer).
-- [ ] Validar a integridade referencial profunda entre Fatos e Dimensões.
-- [ ] Desenvolver a Camada Gold para suportar os indicadores do Power BI.
+## 🚀 Status e Próximos Passos
+- [x] Arquitetura de camadas definida (Bronze/Silver/Gold).
+- [x] ETL e Data Quality das dimensões concluídos.
+- [ ] Aplicar o mesmo rigor técnico nas tabelas Fato (Lançamentos e Orçamento).
+- [ ] Construir a camada Gold para suporte aos indicadores do Power BI.
 
 ---
 
