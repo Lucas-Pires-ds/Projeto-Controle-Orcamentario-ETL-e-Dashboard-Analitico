@@ -135,28 +135,40 @@ SELECT
     FROM
         stg_lancamentos
     WHERE
-        id_centro_custo NOT IN (SELECT id_cc FROM dim_centro_custo)
+        id_centro_custo NOT IN (SELECT
+                                     id_cc 
+                                FROM
+                                    dim_centro_custo)
     ) AS 'ID_centro_custo_invalido',
     (SELECT
         COUNT(*)
     FROM
         stg_lancamentos
     WHERE
-        id_categoria NOT IN (SELECT id_categoria FROM dim_categoria)
+        id_categoria NOT IN (SELECT 
+                                id_categoria 
+                            FROM
+                                dim_categoria)
     ) AS 'ID_categoria_invalido',
     (SELECT
         COUNT(*)
     FROM
         stg_lancamentos
     WHERE
-        id_fornecedor NOT IN (SELECT id_forn FROM dim_fornecedores)
+        id_fornecedor NOT IN (SELECT
+                                id_forn 
+                            FROM 
+                                dim_fornecedores)
     ) AS 'id_fornecedor_invalido',
     (SELECT
         COUNT(*)
     FROM
         stg_lancamentos
     WHERE
-        CAST(CAST(id_campanha_marketing AS FLOAT) AS INT) NOT IN (SELECT id_camp FROM dim_camp_marketing)
+        CAST(CAST(id_campanha_marketing AS FLOAT) AS INT) NOT IN (SELECT
+                                                                    id_camp 
+                                                                FROM 
+                                                                    dim_camp_marketing)
     ) AS 'id_campanha_invalido'
 
 -- UMA VEZ IDENTIFICADO 65 REGISTROS COM UM CENTRO DE CUSTO INVÁLIDO, RODAREI UMA QUERY PARA VISUALIZAR O IMPACTO FINANCEIRO DESSES REGISTROS:
@@ -210,4 +222,256 @@ STATUS DE PAGAMENTO: FORAM INDENTIFICADAS DUPLICIDADES NOS TERMOS UTILIZADOS PAR
 TRATAMENTO: PADRONIZAÇÃO DE STATUS PARA 2 OPÇÕES: "Pago" e "Aberto". 
 
 TIPOS DE DADOS: TODOS OS DADOS ESTÃO COM TIPO VARCHAR. TRATAMENTO: CONVETEREI OS IDS EM INT, DATA_LANCAMENTO EM DATETIME E VALOR EM DECIMAL (16,2).
+*/
+
+----------------------------------------------------- FACT_ORCAMENTO --------------------------------------------------------------------------
+
+SELECT * FROM stg_orcamento -- OVERVIEW
+
+-- VERIFICACAO DE ESPAÇOS EXTRAS
+
+SELECT
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(id_orcamento) > LEN(TRIM(id_orcamento))
+    ) AS 'espacos_id_orcamento',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(ano) > LEN(TRIM(ano))
+    ) AS 'espacos_ano',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(mes) > LEN(TRIM(mes))
+    ) AS 'espacos_mes',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(id_centro_custo) > LEN(TRIM(id_centro_custo))
+    ) AS 'espacos_id_centro_custo',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(id_categoria) > LEN(TRIM(id_categoria))
+    ) AS 'espacos_id_categoria',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        LEN(valor_orcado) > LEN(TRIM(valor_orcado))
+    ) AS 'espacos_valor'
+
+
+-- VERIFICACAO DE NULOS E VAZIOS
+
+SELECT
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        id_orcamento IS NULL OR LEN(id_orcamento) = 0
+    ) AS 'nulos_vazios_id_orcamento',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        ano IS NULL OR LEN(ano) = 0
+    ) AS 'nulos_vazios_ano',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        mes IS NULL OR LEN(mes) = 0
+    ) AS 'nulos_vazios_mes',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        id_centro_custo IS NULL OR LEN(id_centro_custo) = 0
+    ) AS 'nulos_vazios_id_centro_custo',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        id_categoria IS NULL OR LEN(id_categoria) = 0
+    ) AS 'nulos_vazios_id_categoria',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        valor_orcado IS NULL OR LEN(valor_orcado) = 0
+    ) AS 'nulos_vazios_valor'
+
+
+-- VERIFICACAO DE DUPLICIDADES DE CHAVES PRIMARIAS
+
+SELECT
+    id_orcamento,
+    COUNT(id_orcamento) AS 'id_duplicado'
+FROM 
+    stg_orcamento
+GROUP BY id_orcamento
+HAVING COUNT(id_orcamento) > 1
+
+-- VERIFICACAO DE INTEGRIDADE DOS MESES
+
+SELECT
+    COUNT(*) AS 'meses_invalidos'
+FROM
+    stg_orcamento
+WHERE mes < 1 OR mes > 12
+
+
+-- VERIFICACAO DE INTEGRIDADE DOS ANOS
+
+SELECT
+    COUNT(*) AS 'anos_invalidos'
+FROM
+    stg_orcamento
+WHERE ano < 2023 OR ano> 2024
+
+-- VERIFICACAO DE INTEGRIDADE REFERENCIAL DE CHAVES ESTRANGEIRAS
+
+SELECT
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        id_centro_custo NOT IN (SELECT
+                                    id_cc
+                                FROM
+                                    dim_centro_custo)
+    ) AS 'id_cc_invalido',
+    (SELECT
+        COUNT(*)
+    FROM
+        stg_orcamento
+    WHERE
+        id_categoria NOT IN (SELECT
+                                    id_categoria
+                                FROM
+                                    dim_categoria)
+    ) AS 'id_categoria_invalido'
+    
+
+-- VERIFICACAO DE VALORES NEGATIVOS
+
+SELECT
+    COUNT(*) AS 'valores_negativos'
+FROM
+    stg_orcamento
+WHERE
+    CAST(valor_orcado AS FLOAT) < 0
+
+
+-- VERIFICACAO DE INTEGRIDADE DOS VALORES
+
+WITH 
+    BASE AS (
+SELECT 
+    id_orcamento, ano, mes, id_centro_custo, id_categoria, 
+    CAST(valor_orcado AS DECIMAL(18,2)) AS 'valor_tipado'
+FROM stg_orcamento),
+
+    MEDIA_INCLUSA AS (
+SELECT
+    *,
+    AVG(valor_tipado) OVER (PARTITION BY id_centro_custo, id_categoria) AS 'media'
+    FROM BASE
+    ),
+
+    VARIACAO_INCLUSA AS(
+SELECT
+    *, 
+    valor_tipado / NULLIF(media,0) - 1 AS 'variacao'
+FROM MEDIA_INCLUSA
+),
+
+    FINAL AS (
+SELECT
+        *,
+        CASE 
+            WHEN variacao > 10 THEN '1. 1000%+'
+            WHEN variacao BETWEEN 9 AND 10 THEN '2. 900~1000%'
+            WHEN variacao BETWEEN 1 AND 9 THEN '3. 100~900%'
+            WHEN variacao BETWEEN 0.1 AND 0.2 THEN '4. 10 ~ 20%'
+            WHEN variacao BETWEEN 0 AND 0.1 THEN '5. 0 ~ 10%'
+            WHEN variacao BETWEEN -0.1 AND 0 THEN '6. -10~0%'
+            WHEN variacao BETWEEN -0.2 AND -0.1 THEN '7. -20~-10%'
+            WHEN variacao BETWEEN -0.3 AND -0.2 THEN '8. -30~-20%'
+            WHEN variacao < -0.3 THEN '9. -30%-'
+        END AS 'faixas'
+    FROM VARIACAO_INCLUSA
+),
+
+    LISTA_FAIXAS AS(
+        SELECT * FROM (
+            VALUES
+            ('1. 1000%+'),
+            ('2. 900~1000%'),
+            ('3. 100~900%'),
+            ('4. 10 ~ 20%'),
+            ('5. 0 ~ 10%'),
+            ('6. -10~0%'),
+            ('7. -20~-10%'),
+            ('8. -30~-20%'),
+            ('9. -30%-')
+        ) AS Lista(faixa_nome)
+    )
+SELECT
+    L.faixa_nome,
+    FORMAT(COALESCE(SUM(F.valor_tipado), 0),'C') AS 'Valor_concentrado',
+    COUNT(F.faixas) AS 'Registros'
+FROM 
+    LISTA_FAIXAS L
+LEFT JOIN 
+    FINAL F
+        ON L.faixa_nome = F.faixas
+GROUP BY L.faixa_nome
+ORDER BY L.faixa_nome
+
+
+-- VERIFICACAO DE TIPOS DE DADOS
+
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'stg_orcamento' 
+
+
+/* RESULTADO DAS VERIFICAÇÕES:
+
+- ESPAÇOS EXTRAS: 0 ENCONTRADOS. NENHUM TRATAMENTO NECESSÁRIO.
+
+- NULOS E VAZIOS: 0 ENCONTRADOS. NENHUM TRATAMENTO NECESSÁRIO.
+
+- INTEGRIDADE DOS MESES: NENHUM MES FORA DO RANGE (1 - 12) ENCONTRADO, NENHUM TRATAMENTO NECESSÁRIO.
+
+- INTEGRIDADE DOS ANOS: NENHUM ANO FORA DO RANGE ANALISADO (2023 - 2024) ENCONTRADO, NENHUM TRATAMENTO NECESSÁRIO.
+
+- INTEGRIDADE REFERENCIAL DE CHAVES ESTRANGEIRAS: NENHUMA CHAVE REFERENCIADA INCORRETAMENTE. NENHUM TRATAMENTO NECESSÁRIO.
+
+- VALORES NEGATIVOS: 0 ENCONTRADOS. NENHUM TRATAMENTO NECESSÁRIO.
+
+- INTEGRIDADE DOS VALORES: 6 OUTLIERS ABSURDOS ENCONTRADOS, ACUMULANDO QUASE R$ 1 MI, SUSPEITA DE ERRO DE DIGITAÇÃO. TRATAMENTO: SERÁ CRIADA UMA COLUNA PARA IDENTIFICAR ESSES VALORES QUANDO IMPORTARMOS PARA A TABELA SILVER.
+
+- TIPOS DE DADOS: TODOS OS DADOS ESTÃO COMO VARCHAR. TRATAMENTO: SERÁ NECESSÁRIA A CONVERSÃO DAS TABELAS DE ID, ANO E MES PARA INT E VALOR PARA DECIMAL(18,2)
+
 */
