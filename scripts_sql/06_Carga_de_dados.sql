@@ -1,6 +1,9 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------- CARGA DE DADOS --------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- dim_camp_marketing
+
 INSERT INTO dim_camp_marketing(
     id_camp, 
     nome_campanha, 
@@ -12,6 +15,8 @@ SELECT
 FROM 
     vw_campanhas
 
+-- dim_centro_custo
+
 INSERT INTO dim_centro_custo(
     id_cc, 
     nome_cc)
@@ -20,6 +25,11 @@ SELECT
     nome_cc 
 FROM 
     vw_centro_custo
+
+INSERT INTO dim_centro_custo(id_cc, nome_cc) VALUES
+(-1, 'Não identificado')
+
+-- dim_categoria
 
 INSERT INTO dim_categoria(
     id_categoria, 
@@ -32,6 +42,10 @@ SELECT
 FROM
     vw_categoria
 
+
+
+-- dim_fornecedores
+
 INSERT INTO dim_fornecedores(
     id_forn, 
     nome_forn)
@@ -41,8 +55,8 @@ SELECT
 FROM 
     vw_fornecedores
 
-INSERT INTO dim_centro_custo(id_cc, nome_cc) VALUES
-(-1, 'Não identificado')
+
+-- fact_lancamentos
 
 INSERT INTO  fact_lancamentos(
     id_lancamento, 
@@ -67,6 +81,8 @@ SELECT
 FROM 
     vw_lancamentos
 
+-- fact_orcamento
+
 INSERT INTO fact_orcamento(
     id_orcamento,
     data_orcamento,
@@ -88,6 +104,73 @@ SELECT
     status_dado
 FROM vw_orcamento
 
+
+-- dim_calendario
+
+DECLARE @DATA DATETIME 
+SET @DATA = '20230101'
+    WHILE @DATA < '20250101'
+    BEGIN
+INSERT INTO dim_calendario(
+    [data],
+    dia_da_semana,
+    dia_util,
+    ano,
+    mes,
+    nome_do_mes,
+    mes_ano,
+    ano_mes,
+    semestre,
+    semestre_ano,
+    ano_semestre,
+    trimestre,
+    trimestre_ano,
+    ano_trimestre,
+    bimestre,
+    bimestre_ano,
+    ano_bimestre
+) VALUES(
+@DATA,
+DATENAME(WEEKDAY, @DATA),
+CASE WHEN DATENAME(WEEKDAY,@DATA) IN ('Sábado', 'Domingo') THEN 'nao' ELSE 'sim' END,
+YEAR(@DATA),
+MONTH(@DATA),
+DATENAME(MONTH, @DATA),
+FORMAT(@DATA, 'MMM/yy'),
+CAST(FORMAT(@DATA, 'yyyyMM') AS INT),
+CASE WHEN MONTH(@DATA) BETWEEN 1 AND 6 THEN 1 ELSE 2 END,
+CONCAT(CASE WHEN MONTH(@DATA) BETWEEN 1 AND 6 THEN 1 ELSE 2 END,'/',YEAR(@DATA)),
+CAST(CONCAT(YEAR(@DATA),CASE WHEN MONTH(@DATA) BETWEEN 1 AND 6 THEN 1 ELSE 2 END ) AS INT),
+DATEPART(QUARTER, @DATA),
+CONCAT(DATEPART(QUARTER, @DATA), '/', YEAR(@DATA)),
+CAST(CONCAT(YEAR(@DATA), DATEPART(QUARTER, @DATA)) AS INT),
+CASE 
+    WHEN MONTH(@DATA) BETWEEN 1 AND 2 THEN 1
+    WHEN MONTH(@DATA) BETWEEN 3 AND 4 THEN 2
+    WHEN MONTH(@DATA) BETWEEN 5 AND 6 THEN 3
+    WHEN MONTH(@DATA) BETWEEN 7 AND 8 THEN 4
+    WHEN MONTH(@DATA) BETWEEN 9 AND 10 THEN 5
+    WHEN MONTH(@DATA) BETWEEN 11 AND 12 THEN 6 
+END,
+CONCAT(CASE 
+    WHEN MONTH(@DATA) BETWEEN 1 AND 2 THEN 1
+    WHEN MONTH(@DATA) BETWEEN 3 AND 4 THEN 2
+    WHEN MONTH(@DATA) BETWEEN 5 AND 6 THEN 3
+    WHEN MONTH(@DATA) BETWEEN 7 AND 8 THEN 4
+    WHEN MONTH(@DATA) BETWEEN 9 AND 10 THEN 5
+    WHEN MONTH(@DATA) BETWEEN 11 AND 12 THEN 6 
+END, '/', YEAR(@DATA)),
+CAST(CONCAT(YEAR(@DATA), CASE 
+    WHEN MONTH(@DATA) BETWEEN 1 AND 2 THEN 1
+    WHEN MONTH(@DATA) BETWEEN 3 AND 4 THEN 2
+    WHEN MONTH(@DATA) BETWEEN 5 AND 6 THEN 3
+    WHEN MONTH(@DATA) BETWEEN 7 AND 8 THEN 4
+    WHEN MONTH(@DATA) BETWEEN 9 AND 10 THEN 5
+    WHEN MONTH(@DATA) BETWEEN 11 AND 12 THEN 6 
+END) AS INT) 
+)
+SET @DATA +=1
+END
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------- AUDITORIA FINAL -------------------------------------------------------------------------
