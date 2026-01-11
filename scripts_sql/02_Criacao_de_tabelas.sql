@@ -34,6 +34,37 @@ CREATE TABLE dim_fornecedores(
 )
 GO
 
+CREATE TABLE dim_calendario(
+    data DATETIME NOT NULL,
+    dia_da_semana VARCHAR(50) NOT NULL,
+    dia_util VARCHAR(50),
+    ano INT NOT NULL,
+    mes INT NOT NULL,
+    nome_do_mes VARCHAR(50) NOT NULL,
+    mes_ano VARCHAR(50) NOT NULL,
+    ano_mes INT NOT NULL,
+    semestre INT NOT NULL,
+    semestre_ano VARCHAR(50) NOT NULL,
+    ano_semestre INT NOT NULL,
+    trimestre INT NOT NULL,
+    trimestre_ano VARCHAR(50) NOT NULL,
+    ano_trimestre INT NOT NULL,
+    bimestre INT NOT NULL,
+    bimestre_ano VARCHAR(50) NOT NULL,
+    ano_bimestre INT NOT NULL,
+
+    CONSTRAINT dim_calendario_data_pk PRIMARY KEY (data),
+    CONSTRAINT dim_calendario_data_ck CHECK (data BETWEEN '20230101' AND '20241231'),
+    CONSTRAINT dim_calendario_dia_util_ck CHECK (dia_util in ('sim', 'nao')),
+    CONSTRAINT dim_calendario_ano_ck CHECK (ano in (2023, 2024)),
+    CONSTRAINT dim_calendario_mes_ck CHECK (mes BETWEEN 1 AND 12), 
+    CONSTRAINT dim_calendario_semestre_ck CHECK (semestre IN (1,2)),
+    CONSTRAINT dim_calendario_trimestre_ck CHECK (trimestre IN (1,2,3,4)),
+    CONSTRAINT dim_calendario_bimestre_ck CHECK (bimestre IN (1,2,3,4,5,6))
+)
+
+GO
+
 CREATE TABLE fact_lancamentos(
        id_lancamento INT NOT NULL,
        data_lancamento DATETIME NOT NULL,
@@ -76,33 +107,4 @@ CREATE TABLE fact_orcamento(
 
 GO
 
-DROP TABLE DIM_CALENDARIO
 
-CREATE TABLE dim_calendario(
-    data DATETIME NOT NULL,
-    dia_da_semana VARCHAR(50) NOT NULL,
-    dia_util VARCHAR(50),
-    ano INT NOT NULL,
-    mes INT NOT NULL,
-    nome_do_mes VARCHAR(50) NOT NULL,
-    mes_ano VARCHAR(50) NOT NULL,
-    ano_mes INT NOT NULL,
-    semestre INT NOT NULL,
-    semestre_ano VARCHAR(50) NOT NULL,
-    ano_semestre INT NOT NULL,
-    trimestre INT NOT NULL,
-    trimestre_ano VARCHAR(50) NOT NULL,
-    ano_trimestre INT NOT NULL,
-    bimestre INT NOT NULL,
-    bimestre_ano VARCHAR(50) NOT NULL,
-    ano_bimestre INT NOT NULL,
-
-    CONSTRAINT dim_calendario_data_pk PRIMARY KEY (data),
-    CONSTRAINT dim_calendario_data_ck CHECK (data BETWEEN '20230101' AND '20241231'),
-    CONSTRAINT dim_calendario_dia_util_ck CHECK (dia_util in ('sim', 'nao')),
-    CONSTRAINT dim_calendario_ano_ck CHECK (ano in (2023, 2024)),
-    CONSTRAINT dim_calendario_mes_ck CHECK (mes BETWEEN 1 AND 12), 
-    CONSTRAINT dim_calendario_semestre_ck CHECK (semestre IN (1,2)),
-    CONSTRAINT dim_calendario_trimestre_ck CHECK (trimestre IN (1,2,3,4)),
-    CONSTRAINT dim_calendario_bimestre_ck CHECK (bimestre IN (1,2,3,4,5,6))
-)
