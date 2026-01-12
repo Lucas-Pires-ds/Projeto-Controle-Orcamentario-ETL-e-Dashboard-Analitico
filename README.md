@@ -116,7 +116,7 @@ As intervenções realizadas ao longo das camadas Bronze, Silver e Gold foram gu
 
 ---
 
-### 🧪 Principais Intervenções de Qualidade
+### 🧪 Principais Tratamentos de Dados Identificados e Corrigidos
 
 | Tipo de validação / tratamento      | Evidência identificada na Bronze            | Ação aplicada no ETL                           | Impacto analítico |
 |------------------------------------|---------------------------------------------|------------------------------------------------|-------------------|
