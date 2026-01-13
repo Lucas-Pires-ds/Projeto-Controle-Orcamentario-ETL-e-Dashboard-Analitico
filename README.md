@@ -25,9 +25,25 @@ O pipeline foi desenvolvido utilizando **SQL Server**, **Python** e **Power BI**
 
 ---
 
+## 🏢 Contexto do Negócio — Zenith Serviços
+
+A **Zenith Serviços** é uma empresa fictícia do setor de serviços, criada como contexto para a construção e validação do pipeline de dados apresentado neste projeto.
+
+A empresa opera com múltiplos **centros de custo** (administrativo, operações e marketing), realiza **planejamento orçamentário mensal** e registra **lançamentos financeiros diários** relacionados a fornecedores, campanhas e despesas operacionais.
+
+Como ocorre em muitos ambientes corporativos, a base financeira apresenta problemas recorrentes na origem dos dados, tais como:
+- Baixa padronização de campos na origem
+- Variações de texto e status sem padronização
+- Referências inválidas a dimensões analíticas
+- Ausência de validações antes do consumo analítico
+
+O projeto foi desenvolvido para estruturar, tratar e padronizar esses dados ao longo das camadas de ETL, viabilizando uma análise confiável de **Orçado vs Realizado**, tanto em nível **mensal (visão executiva)** quanto **diário (acompanhamento intramês)**, com regras de negócio e qualidade aplicadas ainda na camada de dados.
+
+---
+
 ## 🎯 Problema de Negócio
 
-Empresas que trabalham com orçamento frequentemente enfrentam desafios como:
+Empresas de serviços, como a Zenith Serviços, frequentemente enfrentam desafios como:
 
 - Dados financeiros vindos de múltiplas fontes
 - Falta de validações antes da análise
@@ -231,9 +247,11 @@ Durante o profiling da `stg_lancamentos`, foram identificados:
 
 ## 🥇 Camada Gold — Decisões Analíticas
 
-A camada Gold foi projetada para **reduzir lógica no Power BI** e entregar métricas consolidadas.
+A camada Gold foi desenhada a partir das necessidades de acompanhamento orçamentário da Zenith Serviços, equilibrando visão executiva e controle operacional.
 
-Durante o desenvolvimento, optou-se por separar a camada em **duas views**, cada uma com propósito claro.
+Seu objetivo é **reduzir lógica no Power BI**, entregando métricas consolidadas e consistentes diretamente na camada de dados.
+
+Durante o desenvolvimento, optou-se por separar a camada em **duas views**, cada uma com um propósito claro.
 
 ---
 
