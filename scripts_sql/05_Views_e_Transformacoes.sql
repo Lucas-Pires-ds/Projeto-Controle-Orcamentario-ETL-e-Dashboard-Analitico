@@ -114,20 +114,24 @@ WITH BASE AS (
                      FO.mes AS 'Mes',
                      CC.id_cc AS 'ID_Centro_de_custo',
                      CC.nome_cc AS 'Centro_de_custo',
-                     FO.id_categoria,
+                     FO.id_categoria AS 'ID_Categoria',
                      CAT.nome_categoria AS 'Categoria',
                      SUM(FO.valor) AS 'Orcado',
                      FO.status_dado AS 'Status_dado'
               FROM
               fact_orcamento FO
-              LEFT JOIN
-                     dim_centro_custo CC  
+                     LEFT JOIN dim_centro_custo CC  
                             ON CC.id_cc = FO.id_centro_custo
-              LEFT JOIN
-                     dim_categoria CAT  
+                     LEFT JOIN dim_categoria CAT  
                             ON CAT.id_categoria = FO.id_categoria
               GROUP BY 
-                     FO.ano, FO.mes, CC.id_cc, CC.nome_cc, FO.id_categoria, CAT.nome_categoria, FO.status_dado
+                     FO.ano, 
+                     FO.mes, 
+                     CC.id_cc, 
+                     CC.nome_cc, 
+                     FO.id_categoria, 
+                     CAT.nome_categoria, 
+                     FO.status_dado
               )
 SELECT 
        Ano,
@@ -136,30 +140,84 @@ SELECT
        Centro_de_custo,
        ID_categoria,
        Categoria,
+
        NULLIF(Orcado, 0) AS 'Orcado_mensal',
+
        SUM(Orcado) OVER (
-                            PARTITION BY Ano, ID_centro_de_custo, ID_categoria, status_dado 
-                            ORDER BY Mes
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                     PARTITION BY 
+                            Ano, 
+                            ID_centro_de_custo, 
+                            ID_categoria, 
+                            status_dado 
+                     ORDER BY 
+                            Mes
+                     ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
        ) AS 'Orcado_YTD',
+
        NULLIF(SUM(Orcado) OVER (
-                            PARTITION BY Ano, ID_centro_de_custo, Mes, status_dado), 0) 
-       / NULLIF(SUM(Orcado) OVER(
-                            PARTITION BY Ano, Mes, status_dado), 0
+                            PARTITION BY 
+                                   Ano, 
+                                   ID_centro_de_custo, 
+                                   Mes, 
+                                   status_dado)
+              , 0
+       ) 
+       / 
+       NULLIF(
+              SUM(Orcado) OVER(
+                            PARTITION BY 
+                                   Ano, 
+                                   Mes, 
+                                   status_dado)
+              , 0
        ) AS 'Peso_centro_custo',
+
        NULLIF(SUM(Orcado) OVER (
-                            PARTITION BY Ano, ID_categoria, Mes, status_dado), 0) 
-       / NULLIF(SUM(Orcado) OVER(
-                            PARTITION BY Ano, Mes, status_dado), 0
+                            PARTITION BY 
+                                   Ano, 
+                                   ID_categoria, 
+                                   Mes, 
+                                   status_dado)
+              , 0
+       ) 
+       / 
+       NULLIF(SUM(Orcado) OVER(
+                            PARTITION BY 
+                                   Ano, 
+                                   Mes, 
+                                   status_dado)
+              , 0
        ) AS 'Peso_categoria',
+
        AVG(NULLIF(Orcado, 0)) OVER (
-                            PARTITION BY Ano, ID_centro_de_custo, ID_categoria, status_dado
+                            PARTITION BY 
+                                   Ano, 
+                                   ID_centro_de_custo, 
+                                   ID_categoria, 
+                                   status_dado
        ) AS 'Media_mensal',
+
        CASE 
-              WHEN NULLIF(Orcado, 0) > 2 * AVG(NULLIF(Orcado, 0)) OVER (PARTITION BY Ano, ID_centro_de_custo, ID_categoria, status_dado) 
-              OR NULLIF(Orcado, 0) < 0.5 * AVG(NULLIF(Orcado, 0)) OVER (PARTITION BY Ano, ID_centro_de_custo, ID_categoria, status_dado)
-              THEN 'Valor_atipico' ELSE 'Valor_normal' 
+              WHEN 
+                     NULLIF(Orcado, 0) 
+                     > 2 * AVG(NULLIF(Orcado, 0)) OVER (
+                            PARTITION BY 
+                                   Ano, 
+                                   ID_centro_de_custo, 
+                                   ID_categoria, status_dado
+                            ) 
+                     OR 
+                     NULLIF(Orcado, 0) 
+                     < 0.5 * AVG(NULLIF(Orcado, 0)) OVER (
+                                   PARTITION BY 
+                                          Ano, 
+                                          ID_centro_de_custo, 
+                                          ID_categoria, 
+                                          status_dado
+                            )
+                     THEN 'Valor_atipico' ELSE 'Valor_normal' 
        END AS 'Flag_valor_atipico_orcamento',
+
        Status_dado
 FROM 
        BASE
@@ -169,7 +227,7 @@ FROM
 GO
 
 
-
+SELECT * FROM vw_gold_orcamento
 
 
 
