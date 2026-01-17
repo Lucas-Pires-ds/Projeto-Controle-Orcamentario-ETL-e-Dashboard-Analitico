@@ -1,425 +1,154 @@
-# 📊 Projeto de Controle Orçamentário — Pipeline ETL e Analytics
+# 📊 Controle Orçamentário — Pipeline de Dados e Analytics
 
-## 📌 TL;DR
-- Pipeline ETL completo em **SQL Server** (Bronze → Silver → Gold)
-- Forte foco em **qualidade de dados**, integridade referencial e rastreabilidade
-- Modelo dimensional para análise financeira e orçamentária
-- Camada Gold composta por **3 views analíticas**:
-  - **Orçamento**
-  - **Lançamentos**
-  - **Realizado**
-- Cruzamento **Orçado vs Realizado realizado no Power BI**
-- Métricas prontas para consumo no **Power BI**, com mínima lógica em DAX
+> Pipeline completo de ETL simulando gestão orçamentária corporativa, com foco em qualidade de dados e modelagem dimensional
+
+![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow)
+![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?logo=microsoft-sql-server&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power_BI-F2C811?logo=powerbi&logoColor=black)
 
 ---
 
-## 🧭 Visão Geral
+## 🎯 Visão Geral
 
-Este projeto simula um **pipeline de dados financeiro-orçamentário**, cobrindo desde a ingestão de dados brutos até a entrega de um **modelo analítico confiável para consumo no Power BI**.
+Este projeto simula um pipeline de dados financeiro-orçamentário completo, cobrindo desde a ingestão de dados brutos até a entrega de uma base analítica confiável para consumo em dashboards.
 
-O objetivo não é apenas gerar dashboards, mas estruturar dados de forma consistente, tratando problemas reais como:
-- Baixa padronização
-- Falhas de integridade
+O objetivo não é apenas gerar visualizações, mas construir uma **infraestrutura de dados** que trate problemas reais encontrados em ambientes corporativos:
+
+- Baixa padronização de dados na origem
+- Falhas de integridade referencial
 - Inconsistências semânticas
+- Ausência de validações antes da análise
+
+---
+
+## 🏢 Contexto de Negócio
+
+**Sage** é uma empresa fictícia do setor de serviços que enfrenta desafios comuns na gestão orçamentária:
+
+- Dados financeiros provenientes de múltiplas fontes
+- Dificuldade em consolidar orçado vs realizado
+- Baixa confiabilidade dos indicadores financeiros
 - Ausência de controle de qualidade antes da análise
 
-O pipeline foi desenvolvido utilizando **SQL Server**, **Python** e **Power BI**, com foco em decisões técnicas explícitas e defensivas, próximas do que ocorre em ambientes corporativos.
+O pipeline desenvolvido centraliza, trata e padroniza esses dados ao longo de camadas de ETL, viabilizando análises confiáveis de **Budget vs Actual** em nível mensal e diário.
 
 ---
 
-## 🏢 Contexto do Negócio — Sage
+## 🏗️ Arquitetura
 
-A **Sage** é uma empresa fictícia do setor de serviços, criada como contexto para a construção e validação do pipeline de dados apresentado neste projeto.
+O projeto segue o padrão **Medallion Architecture** (Bronze → Silver → Gold), com separação clara de responsabilidades:
+```
+CSV → Bronze (ingestão) → Silver (limpeza + modelo dimensional) → Gold (métricas) → Power BI
+```
 
-A empresa opera com múltiplos **centros de custo** (administrativo, operações e marketing), realiza **planejamento orçamentário mensal** e registra **lançamentos financeiros diários** relacionados a fornecedores, campanhas e despesas operacionais.
+![Arquitetura do Pipeline](docs_e_imagens/diagrama_pipeline_de_dados.png)
 
-Como ocorre em muitos ambientes corporativos, a base financeira apresenta problemas recorrentes na origem dos dados, tais como:
-- Baixa padronização de campos na origem
-- Variações de texto e status sem padronização
-- Referências inválidas a dimensões analíticas
-- Ausência de validações antes do consumo analítico
+### Camadas implementadas:
 
-O projeto foi desenvolvido para estruturar, tratar e padronizar esses dados ao longo das camadas de ETL, viabilizando uma análise confiável de **Orçado vs Realizado**, tanto em nível **mensal (visão executiva)** quanto **diário (acompanhamento intramês)**, com regras de negócio e qualidade aplicadas ainda na camada de dados.
+- **🥉 Bronze**: Ingestão de dados brutos via Python + BULK INSERT
+- **🥈 Silver**: Modelo dimensional (Star Schema) com integridade referencial
+- **🥇 Gold**: Views analíticas especializadas (Orçamento, Lançamentos, Realizado)
 
----
-
-## 🎯 Problema de Negócio
-
-Empresas de serviços, como a Sage, frequentemente enfrentam desafios como:
-
-- Dados financeiros vindos de múltiplas fontes
-- Falta de validações antes da análise
-- Dificuldade em garantir consistência entre categorias, centros de custo e campanhas
-- Baixa confiabilidade nos indicadores financeiros e orçamentários
-
-Este projeto resolve esses pontos ao:
-
-- Centralizar os dados em um pipeline único
-- Aplicar regras de saneamento ainda na camada de dados
-- Garantir integridade referencial e semântica
-- Entregar bases analíticas confiáveis para consumo no Power BI
+📖 **[Documentação completa do pipeline](pipeline/)**
 
 ---
 
-## 🏗️ Arquitetura de Dados
+## 🧭 Como Navegar Neste Repositório
 
-![Arquitetura do Pipeline de Dados](docs_e_imagens/diagrama_pipeline_de_dados.png)
+Este repositório está organizado em **dois níveis de documentação**:
 
-O projeto segue o padrão **Medallion Architecture**, com responsabilidades bem definidas por camada.
+### 📄 Nível 1: Visão Geral (este README)
+Contexto de negócio, arquitetura geral e resultados do projeto
 
----
+### 📂 Nível 2: Documentação Técnica Detalhada
+Cada camada do pipeline possui documentação técnica específica em seu diretório:
 
-## 🥉 Camada Bronze (stg_)
-
-Responsável pela ingestão dos dados brutos.
-
-- Ingestão via **Python (Pandas) + BULK INSERT**
-- Todas as colunas armazenadas como `VARCHAR(MAX)` ou `VARCHAR(200)`
-- Nenhuma tipagem ou regra de negócio aplicada
-
-**Objetivo:** garantir que a carga nunca falhe por incompatibilidade de tipos e preservar o dado original.
-
-> Os caminhos utilizados nos comandos `BULK INSERT` são parametrizáveis e devem ser ajustados conforme o ambiente local.
+- **[pipeline/](pipeline/)** → Conceitos da Medallion Architecture
+  - **[pipeline/bronze/](pipeline/bronze/)** → Ingestão e scripts Python/SQL
+  - **[pipeline/silver/](pipeline/silver/)** → Validações, transformações e modelo dimensional
+  - **[pipeline/gold/](pipeline/gold/)** → Views analíticas e métricas calculadas
+- **[dashboards/](dashboards/)** → Visualizações Power BI e decisões de BI
 
 ---
 
-## 🔎 Transformações via Views (vw_)
-
-As transformações entre Bronze e Silver são feitas por meio de **Views** no SQL Server.
-
-Benefícios:
-- Ajuste de regras sem reprocessar dados físicos
-- Auditoria e rastreabilidade das transformações
-- Separação clara entre ingestão e tratamento
-
----
-
-## 🥈 Camada Silver (dim_ e fact_)
-
-Camada responsável pela persistência dos dados tratados.
-
-Características:
-- Dados tipados
-- Aplicação de `PRIMARY KEY` e `FOREIGN KEY`
-- Modelo dimensional em **Star Schema**
-
-Essa camada representa a base confiável para consumo analítico.
+## 📊 Estrutura do Projeto
+```
+📦 controle-orcamentario-analytics-pipeline/
+│
+├── 📂 pipeline/          # Camadas de ETL (Bronze, Silver, Gold)
+├── 📂 dashboards/        # Visualizações Power BI
+├── 📂 data/              # Dados sintéticos (CSVs)
+├── 📂 docs_e_imagens/    # Diagramas e documentação visual
+├── 📄 registros.md       # Diário de desenvolvimento
+└── 📄 README.md          # Este arquivo
+```
 
 ---
 
-## ✅ Framework de Qualidade de Dados
+## 🛠️ Stack Tecnológica
 
-Antes da carga definitiva na Silver, foi realizado **Data Profiling** por meio de queries de diagnóstico.
-
-### Principais validações aplicadas
-
-- **Auditoria de Espaços**
-  - `LEN(col) > LEN(TRIM(col))`
-- **Sanidade de IDs**
-  - Identificação de valores como `"101.0"` importados como string
-- **Validação de Domínio**
-  - Meses fora do intervalo válido (1–12)
-- **Unicidade**
-  - Detecção de chaves duplicadas (`GROUP BY + HAVING COUNT(*) > 1`)
-
-Essas validações evitam erros silenciosos e garantem confiabilidade antes da persistência física.
+| Tecnologia | Uso |
+|------------|-----|
+| **SQL Server** | ETL, modelagem dimensional, transformações |
+| **Python (Pandas)** | Geração de dados sintéticos, ingestão |
+| **Power BI** | Visualização e análise |
+| **Git/GitHub** | Versionamento e documentação |
 
 ---
 
-## 📈 Resultados do Processo de ETL
+## ✅ Principais Diferenciais
 
-O processo de ETL não teve como objetivo apenas mover dados entre camadas, mas **sanear, padronizar e tornar a base analítica confiável** antes do consumo no Power BI.
+### 1. Framework de Qualidade de Dados
+- Validações aplicadas antes da persistência na camada Silver
+- Diagnósticos de integridade temporal, referencial e semântica
+- Tratamento defensivo de anomalias (flags ao invés de exclusão)
 
-As intervenções realizadas ao longo das camadas Bronze, Silver e Gold foram guiadas por problemas concretos identificados no Data Profiling, com foco em reduzir risco analítico e garantir consistência dos indicadores.
+### 2. Modelagem Dimensional
+- Star Schema com 4 dimensões e 2 fatos
+- Integridade referencial garantida via constraints
+- dim_calendario para continuidade temporal
 
----
+### 3. Camada Gold Especializada
+- 3 views independentes com responsabilidades bem definidas
+- Métricas avançadas: YTD, MoM, YoY, pesos relativos
+- Cruzamento Orçado vs Realizado realizado no Power BI
 
-### 🧪 Principais Tratamentos Aplicados no ETL
-
-| Tipo de validação / tratamento      | Evidência identificada na Bronze            | Ação aplicada no ETL                           | Impacto analítico |
-|------------------------------------|---------------------------------------------|------------------------------------------------|-------------------|
-| Datas nulas                        | Registros sem referência temporal            | Descarte controlado ainda na View              | Evita distorções em análises temporais |
-| Centros de custo inválidos         | IDs inexistentes nas dimensões               | Uso de membro coringa `-1 (NÃO IDENTIFICADO)`  | Preserva valores financeiros sem violar FKs |
-| IDs com resíduos decimais          | Strings no formato `"101.0"`                 | Conversão `FLOAT → INT`                        | Garante integridade das chaves |
-| Status de pagamento inconsistentes | Variações de case, gênero e idioma           | Normalização semântica via `CASE WHEN`         | Indicadores consistentes no dashboard |
-| Valores com sinal inconsistente    | Valores negativos sem estorno associado      | Tratamento com `ABS()` e redundância defensiva | Evita interpretação financeira incorreta |
-| Espaços e ruídos textuais          | Strings com espaços extras                   | Aplicação de `TRIM()` e padronização de texto  | Melhora agrupamentos e filtros |
-
----
-
-### 📊 Resultado Final do Pipeline
-
-Após a aplicação das regras de ETL e qualidade de dados:
-
-- 100% dos registros persistidos na camada Silver respeitam regras de tipagem e integridade referencial
-- O modelo dimensional pode ser consumido diretamente no Power BI, sem necessidade de tratamentos adicionais em DAX
-- As métricas de **Orçado vs Realizado** refletem regras de negócio explícitas e defensivas
-- O risco de erros silenciosos em análises financeiras foi mitigado ainda na camada de dados
-
-O valor do pipeline não está apenas na visualização final, mas na **confiabilidade da base analítica construída**, garantindo que as análises reflitam o negócio de forma consistente e rastreável.
+### 4. Rastreabilidade
+- Transformações via Views para auditoria completa
+- Preservação de valores originais para investigação
+- Flags de qualidade em toda a pipeline
 
 ---
 
-### Correção de Tipagem na Ingestão
+## 📈 Resultados
 
-Durante a ingestão, alguns identificadores numéricos foram importados como strings decimais (ex: `"101.0"`), o que impede a conversão direta para `INT` no SQL Server.
+Após aplicação das regras de ETL e qualidade:
 
-Para tratar esse cenário, foi aplicada a conversão:
-
-CAST(CAST(col AS FLOAT) AS INT)
-
-Essa abordagem garante a correta tipagem dos identificadores e evita falhas de conversão durante o processo de ETL.
-
----
-
-### Tratamento e Padronização de Texto
-
-Foi implementada uma lógica personalizada de padronização textual:
-
-- Primeira letra maiúscula
-- Demais letras minúsculas
-- Preservação de siglas (`RH`, `TI`)
-- Tratamento correto de delimitadores (`Limpeza/Conservação`)
-
-O objetivo é melhorar a leitura analítica sem alterar o significado dos dados.
+- ✅ 100% dos registros na Silver respeitam tipagem e integridade referencial
+- ✅ Modelo dimensional pronto para consumo sem tratamentos adicionais em DAX
+- ✅ Métricas de Orçado vs Realizado com regras de negócio explícitas
+- ✅ Risco de erros silenciosos mitigado na camada de dados
 
 ---
 
-### Integridade e Limpeza
+## 📌 Status e Próximos Passos
 
-- Registros com IDs nulos foram identificados como causa raiz de duplicidades
-- Esses registros foram descartados ainda nas Views
-- Validações garantem que toda categoria possua Centro de Custo válido antes da carga
+**Status atual:** Camadas Bronze, Silver e Gold implementadas e documentadas
 
----
-
-## 🧩 Modelo Dimensional (Silver)
-
-O modelo foi construído seguindo o padrão **Star Schema**, priorizando clareza e performance.
-
-### Dimensões implementadas
-
-- `dim_centro_custo`
-- `dim_categoria` (FK para centro de custo)
-- `dim_camp_marketing`
-- `dim_fornecedores`
+**Próximos passos:**
+- [ ] Desenvolvimento dos dashboards no Power BI
+- [ ] Publicação de visualizações finais
+- [ ] Adição de testes automatizados de qualidade
 
 ---
 
-## 📄 Tabela Fato — fact_orcamento
+## 📬 Sobre Este Projeto
 
-A `fact_orcamento` reúne os valores orçados por centro de custo e categoria, com granularidade mensal, pronta para análises financeiras.
+Este projeto faz parte de um portfólio de dados, desenvolvido com foco em boas práticas de engenharia analítica e qualidade de dados.
 
-### Diagnóstico de Qualidade (Pré-Carga)
+A documentação técnica completa de cada etapa está disponível nos respectivos diretórios do repositório.
 
-Durante a análise da `stg_orcamento`, identificamos:
-
-- **Integridade Temporal**
-  - Todas as datas presentes e consistentes
-- **Integridade Referencial**
-  - Todos os IDs de centro de custo e categoria referenciam dimensões existentes
-- **Valores fora do esperado**
-  - 6 registros apresentam variações extremamente altas e foram sinalizados como “Dado suspeito” (~R$1M acumulado)
-- **Conversão de Tipos**
-  - Colunas originais como `VARCHAR` convertidas para `INT` (`id`, `ano`, `mes`) e `DECIMAL(18,2)` (`valor`)
-- **Status de Confiabilidade**
-  - Criada coluna `status_dado` para indicar se o registro é confiável ou suspeito
+Feedbacks e sugestões são bem-vindos através das issues do GitHub ou por mensagem no meu ![linkedin:](https://www.linkedin.com/in/lucas-pires-da-hora/).
 
 ---
-
-### Decisões de Engenharia
-
-- **Sinalização de dados suspeitos**
-  - Nenhum registro foi removido; valores extremos recebem flag no `status_dado`
-- **Segurança dos valores**
-  - Garantia de que `valor` seja sempre positivo (`CHECK > 0`)
-- **Padronização de datas**
-  - Todas as datas consolidadas no último dia do mês (`EOMONTH`)
-- **Preparação para análise**
-  - Base pronta para cruzamento com lançamentos e uso no Power BI
-
-
----
-
-## 📄 Tabela Fato — fact_lancamentos
-
-A tabela `fact_lancamentos` representa os lançamentos financeiros realizados.
-
-### Diagnóstico de Qualidade (Pré-Carga)
-
-Durante o profiling da `stg_lancamentos`, foram identificados:
-
-- **Integridade Temporal**
-  - 27 registros sem data (~0,6%)
-- **Integridade Referencial**
-  - 65 registros (~1,3%) sem centro de custo válido
-- **Anomalias de Sinal**
-  - Valores negativos sem correspondência com estorno
-- **Inconsistência Semântica**
-  - Status duplicados por variação de case e gênero
-
----
-
-### Decisões de Engenharia
-
-- **Descarte Estratégico**
-  - Registros sem data removidos (baixo impacto financeiro)
-- **Membro Coringa**
-  - Criação do registro `-1 (NÃO IDENTIFICADO)` em `dim_centro_custo`
-- **Redundância Defensiva**
-  - `valor`: tratado com `ABS()` e `CHECK (> 0)`
-  - `valor_original`: preservado para auditoria
-- **Normalização de Status**
-  - Padronização para apenas `Pago` e `Aberto`
-
----
-
-### Status Final da fact_lancamentos
-
-- Chave primária definida
-- Integridade referencial garantida
-- 100% dos registros válidos segundo regras de negócio
-
----
-
-## 📅 Dimensão — dim_calendario
-
-A `dim_calendario` fornece referência completa de datas para suportar análises financeiras e orçamentárias, incluindo dias úteis, semanas, meses, trimestres, semestres e bimestres.
-
-### Estrutura e Consistência
-
-A tabela foi criada de forma programática para cobrir todo o período entre `01/01/2023` e `31/12/2024`:
-
-- **Datas únicas**
-  - Cada data é registrada apenas uma vez (chave primária)
-- **Dias úteis**
-  - Classificação “sim”/“nao” baseada no dia da semana
-- **Agregações temporais**
-  - Meses, trimestres, semestres e bimestres consistentes com cada data
-- **Colunas de referência**
-  - Nome do mês, ano/mês, semestre/ano, trimestre/ano, bimestre/ano e formatos numéricos de suporte a análises
-
----
-
-### Decisões de Engenharia
-
-- **Nenhum registro descartado**
-  - Todas as datas estão dentro do período definido
-- **Padronização de flags**
-  - Dias úteis uniformizados para análise de fluxo financeiro
-- **Preparação para análise**
-  - Tabela pronta para joins com fatos (`fact_lancamentos`, `fact_orcamento`) e uso direto no Power BI
-
----
-
-## 🥇 Camada Gold — Decisões Analíticas
-
-A camada Gold foi desenhada a partir das necessidades analíticas da Sage, com foco em **simplicidade, clareza semântica e redução de lógica no Power BI**.
-
-Diferente de uma camada puramente agregada, a Gold foi estruturada em **três views analíticas independentes**, cada uma com responsabilidade bem definida.  
-O **cruzamento entre orçamento e realizado é realizado no Power BI**, e não na camada de dados, por decisão arquitetural consciente.
-
----
-
-### 📊 vw_gold_orcamento
-
-Responsabilidades:
-
-- Consolidação mensal de orçamento
-
-- Cálculo de **YTD**
-
-- Pesos relativos por **centro de custo** e **categoria**
-
-- Média histórica mensal
-
-- Flag de valores atípicos via desvio em relação à média
-
-- Proteção contra divisão por zero (NULLIF)
-
-- Nenhum cruzamento com realizado
-
-### 📄 vw_gold_lancamentos
-
-Responsabilidades:
-
-- Visão detalhada e auditável dos lançamentos diários
-
-- Preservação de valor_original e valor tratado
-
-- Flags de centro de custo coringa
-
-- Enriquecimento dimensional completo (centro de custo, categoria, fornecedor, campanha)
-
-- Nenhuma agregação (base para drill-down)
-
-### 📈 vw_gold_realizado
-
-Responsabilidades:
-
-- Consolidação mensal do realizado
-
-- Uso consciente da dim_calendario para continuidade temporal
-
-- Métricas utilizadas:
-
-  - YTD
-
-  - MoM absoluto e percentual
-
-  - YoY absoluto e percentual
-
-  - Média mensal
-
-  - Pesos relativos
-
-  - Flags de anomalia
-
-- Manutenção da rastreabilidade do centro de custo coringa
-
-- Nenhum cálculo de Orçado vs Realizado
-
-### Regras Analíticas 
-
-- Uso de `COALESCE` para consistência visual
-
-- Prevenção de divisão por zero com `NULLIF`
-
-- Continuidade temporal garantida via `dim_calendario`
-
-- Flags explícitas para valores atípicos
-
-- Cálculos complexos concentrados na Gold quando necessário, o restante será feito no Power BI
-
----
-
-## 🛠️ Stack Utilizada
-
-- **Git / GitHub** — versionamento e documentação
-- **Python (Pandas)** — ingestão e dados sintéticos
-- **SQL Server** — ETL e modelagem dimensional
-- **Power BI** — visualização
-
-
----
-
-## 📌 Objetivo do Projeto
-
-Este projeto foi desenvolvido para consolidar estudos em **Análise de Dados, BI e Engenharia Analítica**, aplicando conceitos em um cenário financeiro realista.
-
-O foco está no processo:
-- Decisões técnicas explícitas
-- Tratamento de dados imperfeitos
-- Construção de uma base analítica confiável
-
----
-
-## 📎 Próximos Passos
-
-- Adicionar diagrama de modelo dimensional
-- Iniciar a construção dos dashboards no Power BI
-- Publicar dashboards finais
-
-> **Status:** projeto em desenvolvimento contínuo.
-
-📬 Fique à vontade para explorar o repositório e enviar feedbacks ou sugestões.
