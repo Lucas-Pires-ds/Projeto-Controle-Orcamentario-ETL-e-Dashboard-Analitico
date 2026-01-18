@@ -21,14 +21,29 @@ O objetivo não é apenas gerar visualizações, mas construir uma **infraestrut
 
 ## 🏢 Contexto de Negócio
 
-**Sage** é uma empresa fictícia do setor de serviços que enfrenta desafios comuns na gestão orçamentária:
+**Sage** é uma empresa fictícia do setor de serviços criada como contexto para este projeto de portfólio.
+
+### Problema Simulado
+
+Empresas de serviços frequentemente enfrentam desafios na gestão orçamentária:
 
 - Dados financeiros provenientes de múltiplas fontes
 - Dificuldade em consolidar orçado vs realizado
 - Baixa confiabilidade dos indicadores financeiros
 - Ausência de controle de qualidade antes da análise
+- Dependência excessiva de tratamentos manuais no BI
 
-O pipeline desenvolvido centraliza, trata e padroniza esses dados ao longo de camadas de ETL, viabilizando análises confiáveis de **Budget vs Actual** em nível mensal e diário.
+Este projeto simula esse cenário e propõe uma abordagem estruturada para lidar com esses problemas.
+
+### Abordagem de Solução
+
+Para lidar com os desafios apresentados, o projeto foi pensado a partir de alguns princípios simples:
+
+- Centralizar os dados financeiros em uma única base confiável  
+- Separar claramente dados brutos, dados tratados e dados prontos para análise  
+- Aplicar validações antes da análise, reduzindo a necessidade de correções no BI  
+- Manter rastreabilidade das informações, permitindo investigar inconsistências até a origem do dado  
+
 
 ---
 
@@ -40,9 +55,14 @@ O projeto segue o padrão **Medallion Architecture** (Bronze → Silver → Gold
 
 ### Camadas implementadas:
 
-- **🥉 Bronze**: Ingestão de dados brutos via Python + BULK INSERT
-- **🥈 Silver**: Modelo dimensional (Star Schema) com integridade referencial
-- **🥇 Gold**: Views analíticas especializadas (Orçamento, Realizado, Lançamentos)
+- **🥉 Bronze**  
+  Ingestão de dados brutos via Python e `BULK INSERT`, preservando o formato original e sem regras de negócio.
+
+- **🥈 Silver**  
+  Aplicação de validações de qualidade, padronizações e modelagem dimensional (Star Schema), garantindo integridade referencial e consistência semântica.
+
+- **🥇 Gold**  
+  Views analíticas especializadas (Orçamento, Realizado, Lançamentos), com métricas pré-calculadas e estrutura pronta para consumo no Power BI.
 
 📖 **[Documentação completa do pipeline](pipeline/)**
 
@@ -85,7 +105,7 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 | Tecnologia | Uso |
 |------------|-----|
 | **SQL Server** | ETL, modelagem dimensional, transformações |
-| **Python (Pandas)** | Geração de dados sintéticos, ingestão |
+| **Python (Pandas)** | Geração de dados sintéticos |
 | **Power BI** | Visualização e análise |
 | **Git/GitHub** | Versionamento e documentação |
 
@@ -99,7 +119,7 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 - Tratamento defensivo de anomalias (flags ao invés de exclusão)
 
 ### 2. Modelagem Dimensional
-- Star Schema com 4 dimensões e 2 fatos
+- Star Schema com 5 dimensões e 2 fatos
 - Integridade referencial garantida via constraints
 - dim_calendario para continuidade temporal
 
@@ -120,7 +140,9 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 Após aplicação das regras de ETL e qualidade:
 
 - ✅ 100% dos registros na Silver respeitam tipagem e integridade referencial
+- ✅ 92 registros problemáticos identificados e tratados automaticamente 
 - ✅ Modelo dimensional pronto para consumo sem tratamentos adicionais em DAX
+- ✅ 16+ métricas analíticas disponíveis (YTD, MoM, YoY, etc)
 - ✅ Métricas de Orçado vs Realizado com regras de negócio explícitas
 - ✅ Risco de erros silenciosos mitigado na camada de dados
 
