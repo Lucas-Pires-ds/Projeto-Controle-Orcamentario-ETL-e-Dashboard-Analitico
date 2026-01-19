@@ -36,7 +36,7 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 
 **Objetivo**: Garantir que a carga nunca falhe por incompatibilidade de tipos
 
-📖 **[Documentação técnica da Bronze](bronze/)**
+📖 **[Documentação técnica da Bronze](01_bronze/)**
 
 ---
 
@@ -56,7 +56,7 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 - 1 dimensão temporal (`dim_calendario`)
 - 2 tabelas fato (`fact_orcamento`, `fact_lancamentos`)
 
-📖 **[Documentação técnica da Silver](silver/)**
+📖 **[Documentação técnica da Silver](02_silver/)**
 
 ---
 
@@ -77,7 +77,7 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 
 **Decisão arquitetural**: Cruzamento Orçado vs Realizado é realizado no Power BI, não na camada de dados
 
-📖 **[Documentação técnica da Gold](gold/)**
+📖 **[Documentação técnica da Gold](03_gold/)**
 
 ---
 
@@ -155,8 +155,8 @@ A camada Gold foi dividida em views especializadas (Orçamento, Lançamentos, Re
 
 ## 📖 Documentação Adicional
 
-- 📂 **[Bronze](bronze/)**: Ingestão e estruturas staging
-- 📂 **[Silver](silver/)**: Modelo dimensional e validações
-- 📂 **[Gold](gold/)**: Views analíticas e métricas
+- 📂 **[Bronze](01_bronze/)**: Ingestão e estruturas staging
+- 📂 **[Silver](02_silver/)**: Modelo dimensional e validações
+- 📂 **[Gold](03_gold/)**: Views analíticas e métricas
 
 ---

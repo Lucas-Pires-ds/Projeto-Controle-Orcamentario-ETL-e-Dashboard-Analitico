@@ -201,6 +201,6 @@ Os dados brutos da camada Bronze são consumidos por **Views de transformação*
 - Limpeza de textos (`TRIM`, normalização de case)
 - Normalização de status de pagamento
 
-📖 **[Documentação da camada Silver](../silver/)**
+📖 **[Documentação da camada Silver](../02_silver/)**
 
 ---

@@ -351,6 +351,6 @@ Após todos os tratamentos:
 
 Os dados da camada Silver são consumidos pela **camada Gold**, que cria views analíticas especializadas com métricas pré-calculadas para consumo no Power BI.
 
-📖 **[Documentação da camada Gold](../gold/)**
+📖 **[Documentação da camada Gold](../03_gold/)**
 
 ---

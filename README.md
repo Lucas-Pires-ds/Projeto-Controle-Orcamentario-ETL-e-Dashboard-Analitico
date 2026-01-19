@@ -74,7 +74,7 @@ A camada Silver implementa um modelo dimensional completo com:
 - 📋 **5 Dimensões**: Centro de Custo, Categoria, Fornecedores, Campanhas, Calendário
 - 🔗 **Integridade Referencial**: Todas as foreign keys validadas via constraints
 
-📖 **[Ver documentação técnica completa →](pipeline/silver/)**
+📖 **[Ver documentação técnica completa →](pipeline/02_silver/)**
 
 ---
 
@@ -89,9 +89,9 @@ Contexto de negócio, arquitetura geral e resultados do projeto
 Cada camada do pipeline possui documentação técnica específica em seu diretório:
 
 - **[pipeline/](pipeline/)** → Conceitos da Medallion Architecture
-  - **[pipeline/bronze/](pipeline/bronze/)** → Ingestão e scripts Python/SQL
-  - **[pipeline/silver/](pipeline/silver/)** → Validações, transformações e modelo dimensional
-  - **[pipeline/gold/](pipeline/gold/)** → Views analíticas e métricas calculadas
+  - **[pipeline/bronze/](pipeline/01_bronze/)** → Ingestão e scripts Python/SQL
+  - **[pipeline/silver/](pipeline/02_silver/)** → Validações, transformações e modelo dimensional
+  - **[pipeline/gold/](pipeline/03_gold/)** → Views analíticas e métricas calculadas
 - **[dashboards/](dashboards/)** → Visualizações Power BI e decisões de BI
 
 ---
