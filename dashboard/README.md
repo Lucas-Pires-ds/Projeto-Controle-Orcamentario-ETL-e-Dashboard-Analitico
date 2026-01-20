@@ -1,193 +1,190 @@
 # Camada Dashboard — Power BI
 
-# Dashboards — Camada Analítica
-
 ## Responsabilidade
 
-A camada de **Dashboards** é responsável por **consumir as views da camada Gold** e transformá-las em **análises visuais orientadas à tomada de decisão**, sem reimplementar lógica de negócio já resolvida no SQL.
+A camada de **Dashboard** é responsável por **consumir as views da camada Gold** e transformar os dados analíticos em **visualizações claras para tomada de decisão**, separando explicitamente visões **executivas (mensais)** e **operacionais (intra-mês)**.
 
-**Objetivo**: Demonstrar como as bases analíticas foram consumidas no Power BI, explicitando decisões de modelagem, relacionamento e escopo analítico.
-
----
-
-## 🎯 Escopo Atual
-
-Este README documenta **apenas o que foi efetivamente definido e implementado até o momento**. Decisões visuais, layout, paleta de cores e escolhas estéticas **não fazem parte deste estágio** e serão tratadas posteriormente.
-
-O foco aqui é:
-- Consumo correto das views Gold
-- Decisões de modelagem no Power BI
-- Limites técnicos do ambiente
-- Separação clara entre SQL (dados) e BI (análise)
+**Objetivo**: Oferecer leitura executiva do desempenho orçamentário e, ao mesmo tempo, permitir acompanhamento operacional do consumo do mês corrente.
 
 ---
 
-## 📊 Fontes de Dados Utilizadas
+## 🎯 Princípios de Design Adotados
 
-O dashboard consome exclusivamente **views da camada Gold**, sem acesso direto a tabelas Silver ou Bronze.
+As decisões abaixo guiam toda a construção dos dashboards:
 
-### Views Consumidas
-
-| View | Papel no Dashboard |
-|-----|--------------------|
-| `vw_gold_orcamento` | Base mensal de orçamento planejado |
-| `vw_gold_realizado` | Base mensal do realizado com métricas temporais |
-| `vw_gold_lancamentos` | Base detalhada para drill-down e auditoria |
-
-Essa decisão garante:
-- Consistência com a arquitetura Medallion
-- Reutilização das métricas já validadas
-- Redução de lógica duplicada no Power BI
+- **Separação de contextos**: visão executiva ≠ visão operacional
+- **Coerência com a camada Gold**: dashboards não recriam lógica já resolvida em SQL
+- **Leitura rápida**: poucos visuais centrais, com apoio de análises complementares
+- **Rastreabilidade**: decisões analíticas documentadas, não implícitas
 
 ---
 
-## 🧩 Modelo de Dados no Power BI
+## 📊 Estrutura Geral do Dashboard
 
-O modelo no Power BI replica, de forma controlada, a separação conceitual definida na camada Gold.
+Foi definido **um único arquivo PBIX**, organizado em **múltiplas páginas**, ao invés de múltiplos arquivos.
 
-### Estratégia de Relacionamento
+### Justificativa da decisão
 
-- `vw_gold_orcamento` e `vw_gold_realizado` **não são unidas no SQL**
-- O cruzamento Orçado vs Realizado ocorre **no Power BI**, via relacionamentos
-- A granularidade comum é:
-  - Ano
-  - Mês
-  - Centro de custo
-  - Categoria
+- Facilita versionamento no repositório
+- Evita duplicação de modelo semântico
+- Garante consistência de métricas entre visões executiva e operacional
+- Navegação por páginas resolve a separação de contextos sem custo técnico adicional
+
+---
+
+## 🧭 Navegação
+
+### Menu lateral (fixo)
+
+Presente em todas as páginas, permitindo alternância entre:
+
+- Home (capa do dashboard)
+- Dashboard Executivo — Orçado vs Realizado
+- Dashboard Executivo — Comparações Temporais
+- Dashboard Operacional — Acompanhamento Intra-mês
+
+### Menu superior (contextual)
+
+- Páginas executivas: slicers de **período**, **centro de custo** e **categoria**
+- Página operacional: slicers de **centro de custo** e **categoria**
+
+---
+
+## 📈 Dashboard Executivo — Visão Mensal
+
+### Página 1 — Orçado vs Realizado
+
+**Objetivo**: Avaliar desempenho orçamentário em visão consolidada.
+
+**Visual central**:
+- Gráfico de linha com **Orçado vs Realizado** ao longo do ano
+
+**KPIs (cards)**:
+- Total Orçado
+- Total Realizado
+- Desvio (R$)
+- Desvio (%)
+
+**Padrão dos cards**:
+- Valor principal (big number): contexto filtrado
+- Valor secundário: consolidado do ano inteiro
+
+**Visuais de apoio**:
+- Maiores desvios por **centro de custo**
+- Maiores desvios por **categoria**
+
+---
+
+### Página 2 — Comparações Temporais
+
+**Objetivo**: Analisar crescimento e variação de gastos ao longo do tempo.
+
+**Visual central**:
+- Gráfico de colunas ou linhas comparando **ano atual vs ano anterior**
+
+**KPIs (cards)**:
+- Crescimento MoM (R$)
+- Crescimento MoM (%)
+- Crescimento YoY (R$)
+- Crescimento YoY (%)
+
+**Visuais de apoio**:
+- Centros de custo com maior crescimento
+- Categorias com maior crescimento
+
+---
+
+## 🛠️ Dashboard Operacional — Acompanhamento Intra-mês
+
+### Objetivo
+
+Permitir **monitoramento diário do consumo do orçamento do mês corrente**, antecipando riscos de estouro.
+
+---
+
+### Visual Central — Consumo Acumulado do Mês
+
+Gráfico de linha contendo **três referências simultâneas**:
+
+1. **Realizado acumulado até o dia atual**
+2. **Orçado ideal acumulado do mês** (distribuição linear do orçamento mensal)
+3. **Linha de referência histórica** baseada na **mediana** do consumo dos meses anteriores, proporcionalizada pelos dias decorridos
+
+---
+
+### 📌 Decisão Analítica: Uso de Mediana (e não Média)
+
+A referência histórica intra-mês utiliza **mediana**, e não média.
 
 **Justificativa**:
-- Diferentes análises podem exigir cruzamentos distintos
-- Evita rigidez excessiva na camada Gold
-- Mantém o SQL focado em preparação de dados, não em narrativa analítica
+- A base possui **outliers relevantes** (meses atípicos já identificados na Silver e sinalizados na Gold)
+- A média é sensível a valores extremos e distorceria o padrão esperado
+- A mediana representa melhor o **comportamento típico de consumo**
 
-### Papel da Data de Fim de Mês
-
-Ambas as views (`vw_gold_orcamento` e `vw_gold_realizado`) expõem uma **data no último dia do mês** (`EOMONTH`).
-
-Essa escolha facilita:
-- Relacionamento com uma dimensão calendário no BI
-- Uso correto de hierarquias temporais
-- Comparações mensais consistentes
+Essa decisão garante que o comparativo intra-mês seja:
+- Mais estável
+- Mais realista
+- Mais confiável como sinal de alerta
 
 ---
 
-## 📈 Escopos Analíticos Definidos
+### KPIs Operacionais (cards)
 
-Até o momento, foram claramente separados três escopos de análise:
+- Orçamento total do mês
+- Realizado até o dia atual
+- % do orçamento consumido
+- % do mês decorrido
 
-### 1. Visão Executiva Mensal
+> **Nota conceitual**: Embora percentuais sejam fundamentais no acompanhamento intra-mês, valores absolutos em **R$** são mantidos, pois fazem parte da linguagem cotidiana da gestão financeira.
 
-Baseada principalmente em:
+---
+
+### Matriz de Risco Orçamentário
+
+Tabela/matriz destacando **centros de custo e categorias** com risco de estouro.
+
+**Classificação definida**:
+
+- < 80% do orçamento: **Baixo risco**
+- 80% – 100%: **Atenção**
+- > 100%: **Estouro de orçamento**
+
+O objetivo é permitir **ação preventiva**, não apenas diagnóstico tardio.
+
+---
+
+## 🔗 Integração com a Camada Gold
+
+Os dashboards consomem exclusivamente:
+
 - `vw_gold_orcamento`
 - `vw_gold_realizado`
+- `vw_gold_lancamentos` (para drill-down futuro)
 
-Foco em:
-- Orçado vs Realizado
-- Evolução mensal
-- Acumulado no ano (YTD)
-- Concentração de gastos por centro de custo e categoria
-
-Toda a lógica de:
-- YTD
-- MoM
-- YoY
-- Pesos relativos
-
-já está resolvida no SQL e apenas consumida no BI.
+**Princípios respeitados**:
+- Métricas complexas permanecem no SQL
+- Power BI foca em relacionamento, contexto e visualização
+- Cruzamento Orçado vs Realizado ocorre no BI, conforme decisão arquitetural da Gold
 
 ---
 
-### 2. Acompanhamento Intramês
+## 📌 Escopo Atual do README
 
-O acompanhamento intramês é viabilizado pela **granularidade diária preservada** em `vw_gold_lancamentos`.
+Este documento cobre **apenas decisões já tomadas**, incluindo:
 
-Objetivo:
-- Entender quanto do orçamento mensal já foi consumido
-- Monitorar concentração de gastos dentro do mês
-- Permitir leitura progressiva do consumo
+- Estrutura de páginas
+- Separação executivo vs operacional
+- Métricas exibidas
+- Uso de mediana como referência intra-mês
+- Estratégia de navegação
 
-A decisão de manter uma view diária separada evita:
-- Inflar a view mensal com dados desnecessários
-- Criar métricas híbridas difíceis de manter
-
----
-
-### 3. Drill-down e Auditoria
-
-`vw_gold_lancamentos` funciona como base de suporte analítico:
-- Investigação de picos mensais
-- Identificação de fornecedores, campanhas ou categorias específicas
-- Análise de lançamentos associados a centro de custo coringa
-
-Essa view **não é agregada no BI** por padrão, preservando sua função de detalhamento.
+Decisões visuais (cores, layouts finais, ícones) e otimizações de DAX serão documentadas futuramente conforme forem definidas.
 
 ---
 
-## ⚠️ Limitações Técnicas Atuais
+## 📖 Próximos Passos
 
-### Licenciamento do Power BI
-
-O projeto foi desenvolvido **sem licença Power BI Pro**.
-
-Consequências práticas:
-- Compartilhamento via arquivo `.pbix`
-- Ausência de publicação em workspace compartilhado
-- Sem controle de permissões ou RLS
-- Atualização manual dos dados
-
-Essas limitações são assumidas conscientemente e **não impactam a validade técnica do modelo analítico**.
-
----
-
-## 🎯 Decisões de Arquitetura no BI
-
-### Lógica Analítica Fora do DAX
-
-Sempre que possível, optou-se por:
-- Resolver métricas no SQL (Gold)
-- Manter o Power BI focado em visualização e interação
-
-Isso reduz:
-- Complexidade de medidas DAX
-- Risco de inconsistência entre visuais
-- Dificuldade de manutenção
-
-### Uso de Flags Analíticas
-
-Flags como:
-- Valor atípico
-- Centro de custo coringa
-
-são consumidas diretamente no BI para:
-- Filtros
-- Destaques visuais
-- Segmentações analíticas
-
-Sem necessidade de recriar regras no Power BI.
-
----
-
-## 📌 Estado Atual do Dashboard
-
-Até este ponto, o projeto possui:
-
-- Modelo de dados definido no Power BI
-- Conexão direta com views Gold
-- Separação clara entre análise mensal, intramês e detalhamento
-- Base pronta para construção de KPIs e visuais
-
-Decisões visuais, layout, storytelling e refinamento de UX **serão documentados em iterações futuras**, à medida que forem definidos.
-
----
-
-## 📖 Contexto no Projeto
-
-Este README fecha o ciclo iniciado no pipeline:
-
-- Bronze: ingestão
-- Silver: limpeza e modelagem
-- Gold: métricas analíticas
-- **Dashboard: consumo e análise**
-
-O foco permanece na **clareza técnica, rastreabilidade e separação de responsabilidades**, evitando sobreposição entre camadas.
-
+- Implementação do modelo semântico no Power BI
+- Criação das medidas DAX necessárias
+- Validação das métricas com cenários reais
+- Documentação de decisões visuais e técnicas adicionais
