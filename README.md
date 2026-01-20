@@ -92,7 +92,7 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
   - **[pipeline/bronze/](pipeline/01_bronze/)** → Ingestão e scripts Python/SQL
   - **[pipeline/silver/](pipeline/02_silver/)** → Validações, transformações e modelo dimensional
   - **[pipeline/gold/](pipeline/03_gold/)** → Views analíticas e métricas calculadas
-- **[dashboards/](dashboards/)** → Visualizações Power BI e decisões de BI
+- **[dashboards/](dashboard/)** → Visualizações Power BI e decisões de BI
 
 ---
 
