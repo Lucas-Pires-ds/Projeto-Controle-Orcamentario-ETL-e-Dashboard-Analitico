@@ -124,17 +124,22 @@ ORDER BY Realizado DESC
 
 **Campos principais**:
 - Ano, Mês, Ano_mes, Data do lançamento
-- Centro de custo, Categoria (IDs e nomes)
-- Fornecedor, Campanha (IDs e nomes, com tratamento de nulos)
+- Centro de custo, Categoria, Fornecedor, Campanha
+- **Gasto_MTD**: Acumulado do mês até o dia do lançamento (detalhado)
+- **Mediana_MTD_CC**: Benchmark histórico do Centro de Custo para o dia correspondente
+- **Flag_alerta_gasto**: Status do gasto (Abaixo/Dentro/Acima do normal)
 - Valor tratado e valor original
 - Status de pagamento
 - Flag de centro de custo coringa
 
 **Características**:
-- Preserva granularidade original da `fact_lancamentos`
+- Preserva granularidade original da `fact_lancamentos` para investigação de causa raiz
 - Enriquecimento dimensional completo via LEFT JOINs
 - Nenhuma agregação aplicada (permite drill-down total)
 - Tratamento de campanhas nulas: `COALESCE(nome_campanha, 'Sem_campanha')`
+- **Inteligência Estatística**: Compara o ritmo de gasto atual com a mediana histórica de acumulados diários
+- Uso de `PERCENTILE_CONT(0.5)` para garantir um benchmark imune a outliers passados
+- Proteção contra divisão por zero via `NULLIF` no cálculo de desvio
 
 **Exemplo de uso**:
 ```sql
@@ -248,6 +253,23 @@ Realizado / NULLIF(valor_mesmo_mes_ano_anterior, 0) - 1
 **Importância da continuidade temporal**: dim_calendario garante que LAG(12) sempre pega o mesmo mês do ano anterior
 
 ---
+
+### Monitoramento de Ritmo de Gasto (MTD vs Mediana)
+
+Diferente das visões mensais, esta métrica permite identificar desvios de comportamento **durante** o mês vigente.
+
+**Lógica de Cálculo**:
+1. **Acumulado Diário**: É calculado o gasto acumulado de cada dia em relação ao início do seu respectivo mês.
+2. **Cálculo da Mediana**:
+```sql
+PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY Gasto_ate_dia) 
+OVER (PARTITION BY Dia_do_mes, id_centro_custo)
+```
+3. **Comparação**: O gasto atual (MTD) é dividido pela mediana histórica do Centro de Custo para aquele dia específico.
+
+**Justificativa**: A média simples poderia ser distorcida por meses de gastos excepcionais. A **mediana** oferece um "norte" mais realista do que é um comportamento padrão de consumo para o período.
+---
+
 
 ### Pesos Relativos
 

@@ -181,3 +181,50 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 - `vw_gold_orcamento` **finalizada, revisada e pronta para uso**.  
 - Arquitetura Gold **simplificada e mais robusta**.  
 - Base sólida criada para a construção da `vw_gold_lancamentos` e do dashboard final.
+
+## [17/01/2026] Refino da Camada Gold e Documentação do Projeto
+
+### O que foi feito:
+- **Ajuste fino nas Views Gold:** Revisei a tipagem e os nomes das colunas na `vw_gold_lancamentos` e `vw_gold_orcamento` para garantir uma integração direta com o Power BI.
+- **Tratamento de strings para filtros:** Apliquei `COALESCE` e remoção de espaços nos campos de fornecedores e campanhas para evitar inconsistências nos menus de filtro do dashboard.
+- **Atualização da documentação:** Revi e atualizei os arquivos README da camada Gold e iniciei a estruturação do README da pasta Dashboard.
+
+### Decisões técnicas:
+- **Padronização de nomes:** Alterei nomes de colunas técnicas para termos mais claros e amigáveis. A ideia é resolver a nomenclatura direto na fonte (SQL) para evitar retrabalho de renomeação dentro do Power BI.
+- **Consistência nos filtros:** Defini que valores nulos em campos descritivos seriam substituídos por termos como "Sem Informação". Isso melhora a experiência do usuário final, eliminando opções vazias ou irrelevantes nos filtros.
+- **Alinhamento da documentação:** Atualizei os READMEs para refletir as mudanças na estrutura da Gold, garantindo que o repositório explique exatamente o que o código atual faz. Isso facilita a manutenção futura e o entendimento do pipeline por outros analistas.
+
+### Resolução de problemas:
+- **Ajuste de dependências:** Reorganizei o script `07_Views_golds.sql` para garantir que a criação das views ocorra na ordem correta, evitando erros de referência a tabelas ou colunas durante a execução do pipeline.
+
+### Status ao final do dia:
+- Camada Gold revisada, documentada e pronta para o consumo no Power BI.
+- Documentação técnica do projeto atualizada com as últimas decisões de arquitetura.
+
+## [20/01/2026] Inteligência de Alerta e Planejamento do Dashboard
+
+### O que foi feito:
+- **Finalização da `vw_gold_lancamentos`:** Implementei a lógica de acompanhamento acumulado mensal (MTD) diretamente na view.
+- **Criação de benchmark estatístico:** Desenvolvi o cálculo de mediana histórica para validar o ritmo de gasto diário.
+- **Planejamento estrutural do Power BI:** Elaborei o README da camada de dashboard, detalhando a separação entre as visões Executiva e Operacional.
+- **Atualização da documentação técnica:** Refinei os guias das camadas Gold e Dashboard com as novas definições de métricas e navegação.
+
+### Decisões técnicas:
+- **Monitoramento preventivo:** Em vez de focar apenas no fechamento do mês, estruturei uma lógica que compara o gasto atual com o comportamento histórico do mesmo período, permitindo identificar desvios enquanto o mês ainda está em curso.
+- **Uso de Mediana vs. Média:** Optei pela mediana para o benchmark histórico por ser uma métrica mais robusta contra outliers. Isso garante que meses com gastos atípicos não distorçam a linha de referência, gerando alertas mais confiáveis.
+- **Processamento no SQL (Push-down):** Decidi realizar os cálculos complexos de acumulados e medianas no banco de dados. Isso otimiza a performance do Power BI, que recebe os dados já rotulados com as flags de alerta.
+- **Consolidação de arquivo único:** Optei por gerenciar um único arquivo `.pbix` com navegação interna. Essa escolha facilita o controle de versão no repositório e garante que todas as páginas consumam o mesmo modelo semântico.
+
+### Resolução de problemas:
+- **Ajuste de granularidade no Join:** Identifiquei uma duplicação de registros causada pelo cruzamento com a lógica de mediana. Resolvi o problema aplicando `DISTINCT` na subquery de referência, garantindo a integridade dos valores financeiros.
+- **Estabilidade de cálculos:** Implementei o uso de `NULLIF` para tratar divisões por zero. Isso evita erros de processamento em centros de custo sem histórico de gastos em dias específicos.
+
+### Status ao final do dia:
+- Camada Gold concluída, testada e documentada.
+- Estratégia de dashboard definida, separando o monitoramento diário da análise executiva mensal.
+- Modelo de dados preparado para sinalizar anomalias de orçamento em tempo real.
+
+### Próximos passos:
+- [ ] Implementar as medidas DAX conforme as regras de negócio definidas.
+- [ ] Construir a interface visual e o sistema de navegação no Power BI.
+- [ ] Validar os alertas de risco (semáforo) com os dados da camada Gold.

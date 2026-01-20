@@ -1,4 +1,4 @@
-# Camada Dashboard — Power BI
+# Visualização de dados — Power BI
 
 ## Responsabilidade
 
@@ -56,6 +56,11 @@ Presente em todas as páginas, permitindo alternância entre:
 
 **Objetivo**: Avaliar desempenho orçamentário em visão consolidada.
 
+**Perguntas de negócio que esta página responde:**
+1. O gasto total do ano está dentro do planejamento orçamentário?
+2. Quais meses apresentaram maior desvio em relação ao orçado?
+3. Quais Centros de Custo e Categorias são os principais responsáveis pelos estouros de orçamento?
+
 **Visual central**:
 - Gráfico de linha com **Orçado vs Realizado** ao longo do ano
 
@@ -79,6 +84,11 @@ Presente em todas as páginas, permitindo alternância entre:
 
 **Objetivo**: Analisar crescimento e variação de gastos ao longo do tempo.
 
+**Perguntas de negócio que esta página responde:**
+1. O gasto atual é maior ou menor do que o gasto no mesmo período do ano passado?
+2. Qual é a tendência de crescimento dos gastos mês a mês?
+3. Quais áreas tiveram o maior aumento de custo em relação ao ano anterior?
+
 **Visual central**:
 - Gráfico de colunas ou linhas comparando **ano atual vs ano anterior**
 
@@ -96,10 +106,12 @@ Presente em todas as páginas, permitindo alternância entre:
 
 ## 🛠️ Dashboard Operacional — Acompanhamento Intra-mês
 
-### Objetivo
+**Objetivo**: Permitir **monitoramento diário do consumo do orçamento do mês corrente**, antecipando riscos de estouro.
 
-Permitir **monitoramento diário do consumo do orçamento do mês corrente**, antecipando riscos de estouro.
-
+**Perguntas de negócio que esta página responde:**
+1. No ritmo de hoje, vamos terminar o mês acima ou abaixo do orçamento?
+2. O gasto acumulado até agora é condizente com o comportamento histórico (mediana) deste Centro de Custo?
+3. Quais categorias já consumiram mais de 80% do orçamento antes do fim do mês?
 ---
 
 ### Visual Central — Consumo Acumulado do Mês
@@ -135,8 +147,6 @@ Essa decisão garante que o comparativo intra-mês seja:
 - % do orçamento consumido
 - % do mês decorrido
 
-> **Nota conceitual**: Embora percentuais sejam fundamentais no acompanhamento intra-mês, valores absolutos em **R$** são mantidos, pois fazem parte da linguagem cotidiana da gestão financeira.
-
 ---
 
 ### Matriz de Risco Orçamentário
@@ -159,26 +169,13 @@ Os dashboards consomem exclusivamente:
 
 - `vw_gold_orcamento`
 - `vw_gold_realizado`
-- `vw_gold_lancamentos` (para drill-down futuro)
+- `vw_gold_lancamentos` 
 
 **Princípios respeitados**:
 - Métricas complexas permanecem no SQL
 - Power BI foca em relacionamento, contexto e visualização
 - Cruzamento Orçado vs Realizado ocorre no BI, conforme decisão arquitetural da Gold
 
----
-
-## 📌 Escopo Atual do README
-
-Este documento cobre **apenas decisões já tomadas**, incluindo:
-
-- Estrutura de páginas
-- Separação executivo vs operacional
-- Métricas exibidas
-- Uso de mediana como referência intra-mês
-- Estratégia de navegação
-
-Decisões visuais (cores, layouts finais, ícones) e otimizações de DAX serão documentadas futuramente conforme forem definidas.
 
 ---
 

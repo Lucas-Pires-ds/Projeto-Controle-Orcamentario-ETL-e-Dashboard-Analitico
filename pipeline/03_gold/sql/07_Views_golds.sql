@@ -298,6 +298,45 @@ GO
 
 CREATE OR ALTER VIEW vw_gold_lancamentos AS
 
+WITH ACUMULADO_MENSAL AS (
+
+       SELECT
+              DATEFROMPARTS(YEAR(data_lancamento), MONTH(data_lancamento), 1) AS 'Mes_ref',
+              DAY(data_lancamento) AS Dia_do_mes,
+              id_centro_custo,
+              SUM(valor) AS 'Valor_do_dia'
+       FROM fact_lancamentos
+       GROUP BY
+              YEAR(data_lancamento),
+              MONTH(data_lancamento),
+              DAY(data_lancamento),
+              id_centro_custo
+),
+ACUMULADO_FINAL AS (
+       SELECT
+              Mes_ref,
+              Dia_do_mes,
+              id_centro_custo,
+              SUM(Valor_do_dia) OVER(
+                     PARTITION BY
+                            Mes_ref,
+                            id_centro_custo
+                     ORDER BY Dia_do_mes
+              ) AS 'Gasto_ate_dia'       
+       FROM ACUMULADO_MENSAL
+),
+MEDIANA AS (
+       SELECT DISTINCT
+              Dia_do_mes,
+              id_centro_custo,
+              PERCENTILE_CONT(0.5)
+                     WITHIN GROUP (ORDER BY Gasto_ate_dia) OVER(
+                                                 PARTITION BY 
+                                                        Dia_do_mes,
+                                                        id_centro_custo) AS 'Mediana_gasto_ate_dia'
+       FROM ACUMULADO_FINAL
+       WHERE Mes_ref < DATEFROMPARTS(2024, 12, 1) -- PARA PEGAR SOMENTE MESES ANTERIORES AO ATUAL (EM PRODUCAO O IDEAL SERIA UTILIZAR 
+)                                                 -- "Mes_ref < DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)")
 
 SELECT 
        YEAR(FL.data_lancamento) AS 'Ano',
@@ -307,16 +346,57 @@ SELECT
        FL.data_lancamento AS 'Data_lancamento',
        FL.id_centro_custo AS 'ID_Centro_de_custo',
        CC.nome_cc AS 'Centro_de_custo',
-       CAT.id_categoria AS 'ID_Categoria',
+       FL.id_categoria AS 'ID_Categoria',
        CAT.nome_categoria AS 'Categoria',
        FL.id_fornecedor AS 'ID_Fornecedor',
        DF.nome_forn AS 'Fornecedor',
        FL.id_campanha AS 'ID_Campanha',
        COALESCE(MKT.nome_campanha, 'Sem_campanha') AS 'Campanha',
        FL.valor AS 'Valor',
-       FL.valor_original AS 'Valor_original',
+       SUM(valor) OVER(
+              PARTITION BY 
+                     FL.id_centro_custo,
+                     FL.id_categoria,
+                     FL.id_fornecedor,
+                     FL.id_campanha,
+                     YEAR(FL.data_lancamento),
+                     MONTH(FL.data_lancamento)
+              ORDER BY FL.data_lancamento
+       ) AS 'Gasto_MTD',
+       NULLIF(Mediana_gasto_ate_dia, 0) AS 'Mediana_MTD_CC',
+       CASE 
+              WHEN SUM(valor) OVER(
+              PARTITION BY 
+                     FL.id_centro_custo,
+                     FL.id_categoria,
+                     FL.id_fornecedor,
+                     FL.id_campanha,
+                     YEAR(FL.data_lancamento),
+                     MONTH(FL.data_lancamento)
+       ) 
+       / 
+       NULLIF(Mediana_gasto_ate_dia, 0) <= 0.8
+              THEN 'Abaixo_do_normal'
+              WHEN SUM(valor) OVER(
+              PARTITION BY 
+                     FL.id_centro_custo,
+                     FL.id_categoria,
+                     FL.id_fornecedor,
+                     FL.id_campanha,
+                     YEAR(FL.data_lancamento),
+                     MONTH(FL.data_lancamento)
+       ) 
+       /
+       NULLIF(Mediana_gasto_ate_dia, 0) BETWEEN 0.81 AND 1
+              THEN 'Dentro_do_normal'
+              ELSE 'acima_do_normal'
+              END AS 'Flag_alerta_gasto' ,
+       FL.valor_original AS 'Valor_original',      
        FL.status_pagamento AS 'Status_pagamento',
-       CASE WHEN FL.id_centro_custo = -1 THEN 'Sim' ELSE 'Nao' END AS 'Flag_centro_custo_coringa'
+       CASE 
+              WHEN FL.id_centro_custo = -1 
+              THEN 'Sim' ELSE 'Nao' 
+              END AS 'Flag_centro_custo_coringa'
 FROM fact_lancamentos FL  
        LEFT JOIN dim_centro_custo CC
               ON CC.id_cc = FL.id_centro_custo
@@ -326,9 +406,10 @@ FROM fact_lancamentos FL
               ON DF.id_forn = FL.id_fornecedor
        LEFT JOIN dim_camp_marketing MKT
               ON MKT.id_camp = FL.id_campanha
-
-
+       LEFT JOIN MEDIANA MED 
+              ON MED.Dia_do_mes = DAY(FL.data_lancamento)
+              AND MED.id_centro_custo = FL.id_centro_custo
 
 GO
 
-
+SELECT * FROM vw_gold_lancamentos
