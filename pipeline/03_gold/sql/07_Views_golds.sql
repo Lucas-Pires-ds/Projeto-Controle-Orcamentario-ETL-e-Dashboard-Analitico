@@ -38,6 +38,7 @@ WITH BASE AS (
               )
 SELECT 
        EOMONTH(DATEFROMPARTS(Ano, Mes, 1)) AS 'Data_de_orcamento',
+       (Ano * 100) + Mes AS 'Ano_mes',
        Ano,
        Mes,
        ID_centro_de_custo,
@@ -139,7 +140,7 @@ WITH BASE AS (
 SELECT
        YEAR(FL.data_lancamento) AS 'Ano',
        MONTH(FL.data_lancamento) AS 'Mes',
-       FORMAT(FL.data_lancamento, 'yyyy_MM') AS 'Ano_mes',
+       (YEAR(FL.data_lancamento) * 100) + MONTH(FL.data_lancamento) AS 'Ano_mes',
        FL.id_centro_custo AS 'ID_Centro_de_custo',
        CC.nome_cc AS 'Centro_de_custo',
        CAT.id_categoria AS 'ID_Categoria',
@@ -157,7 +158,7 @@ FROM fact_lancamentos FL
 GROUP BY
        YEAR(FL.data_lancamento),
        MONTH(FL.data_lancamento),
-       FORMAT(FL.data_lancamento, 'yyyy_MM'),
+       (YEAR(FL.data_lancamento) * 100) + MONTH(FL.data_lancamento),
        FL.id_centro_custo,
        CC.nome_cc,
        CAT.id_categoria,
@@ -336,13 +337,20 @@ MEDIANA AS (
                                                         id_centro_custo) AS 'Mediana_gasto_ate_dia'
        FROM ACUMULADO_FINAL
        WHERE Mes_ref < DATEFROMPARTS(2024, 12, 1)       -- Exclui o mês atual (dezembro/2024) do cálculo da mediana histórica para evitar viés de dados incompletos.
-       )                                                -- Em produção o ideal seria usar Mes_ref < DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)         
-                                                       
+       ),                                                -- Em produção o ideal seria usar Mes_ref < DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)         
+MEDIANA_TOTAL AS (
+       SELECT
+              *,
+              MAX(Mediana_gasto_ate_dia) OVER(
+                            PARTITION BY id_centro_custo
+              ) AS MEDIANA_TOTAL
+       FROM MEDIANA
+)                                                       
 
 SELECT 
        YEAR(FL.data_lancamento) AS 'Ano',
        MONTH(FL.data_lancamento) AS 'Mes',
-       FORMAT(FL.data_lancamento, 'yyyy_MM') AS 'Ano_mes',
+       (YEAR(FL.data_lancamento) * 100) + MONTH(FL.data_lancamento) AS 'Ano_mes',
        FL.id_lancamento AS 'ID_Lancamento',
        FL.data_lancamento AS 'Data_lancamento',
        FL.id_centro_custo AS 'ID_Centro_de_custo',
@@ -365,6 +373,8 @@ SELECT
               ORDER BY FL.data_lancamento
        ) AS 'Gasto_MTD',
        NULLIF(Mediana_gasto_ate_dia, 0) AS 'Mediana_MTD_CC',
+       NULLIF(MEDIANA_TOTAL, 0) AS 'Mediana_total',
+       NULLIF(Mediana_gasto_ate_dia, 0) / NULLIF(MEDIANA_TOTAL, 0) AS 'Participacao_mediana',
        SUM(valor) OVER(
               PARTITION BY 
                      FL.id_centro_custo,
@@ -407,9 +417,7 @@ SELECT
        FL.valor_original AS 'Valor_original',      
        REPLACE(FL.status_pagamento,'Aberto', 'Pendente') AS 'Status_pagamento',
        CASE 
-              WHEN FL.id_centro_custo = -1 
-              THEN 'Sim' ELSE 'Nao' 
-              END AS 'Flag_centro_custo_coringa'
+              WHEN FL.id_centro_custo = -1 THEN 'Sim' ELSE 'Nao' END AS 'Flag_centro_custo_coringa'
 FROM fact_lancamentos FL  
        LEFT JOIN dim_centro_custo CC
               ON CC.id_cc = FL.id_centro_custo
@@ -419,7 +427,7 @@ FROM fact_lancamentos FL
               ON DF.id_forn = FL.id_fornecedor
        LEFT JOIN dim_camp_marketing MKT
               ON MKT.id_camp = FL.id_campanha
-       LEFT JOIN MEDIANA MED 
+       LEFT JOIN MEDIANA_TOTAL MED 
               ON MED.Dia_do_mes = DAY(FL.data_lancamento)
               AND MED.id_centro_custo = FL.id_centro_custo
 
